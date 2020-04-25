@@ -12,12 +12,7 @@ public:
 
 	Interface& operator= (const Interface&);
 
-
-	void del();
-	void copy(const Interface&);
-	
-	void detect_function(std::string*, size_t);
-	
+	void split_input(char*, size_t);
 
 private:
 	Session* sessions;
@@ -26,5 +21,8 @@ private:
 
 	bool load (std::string*, size_t,size_t&);
 	bool close(const size_t);
+	void del();
+	void copy(const Interface&);
+	void detect_function(std::string*, size_t);
 };
 

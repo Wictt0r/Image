@@ -148,6 +148,51 @@ bool Interface::close(const size_t close_ID)
 	}
 }
 
+void Interface::split_input(char* input, size_t lenght)
+{
+	size_t counter = 1;
+	std::string* words;
+	for (size_t i = 0; i < lenght; ++i)
+	{
+		if (input[i] == ' ')
+		{
+			counter++;
+			while (input[i] == ' ')
+				i++;
+		}
+	}
+	words = new (std::nothrow) std::string[counter];
+	if (words != nullptr)
+	{
+		size_t current = 0;
+		for (size_t i = 0; i < counter; ++i)
+		{
+			for (size_t j = current; j < lenght; ++j)
+			{
+				if (input[j] == ' ')
+				{
+					while (input[j] == ' ')
+					{
+						j++;
+					}
+					current = j;
+					break;
+				}
+				words[i] = words[i] + input[j];
+
+			}
+		}
+		detect_function(words, counter);
+		delete[] words;
+	}
+	else
+	{
+		std::cout << "Error with memory allocation" << std::endl;
+	}
+	return;
+
+}
+
 void Interface::detect_function(std::string* words, size_t lenght)
 {
 	if (words[0] == "load")
