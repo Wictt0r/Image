@@ -1,9 +1,9 @@
 #include "Session.h"
 #include "R_Image.h"
 #include<iostream>
-#include<string>
 #include<fstream>
 
+#pragma warning(disable:4996)
 Session::Session() :images(nullptr),images_count(0), previous(nullptr),ID(0),changes(nullptr),changes_count(0){}
 
 Session::Session(const Session& other)
@@ -30,111 +30,77 @@ Session& Session::operator=(const Session& other)
 void Session::copy(const Session& other)
 {
 	images = new (std::nothrow) R_Image[other.images_count];
-	if (images != nullptr)
+	if (other.previous != nullptr && other.changes != nullptr)
 	{
-		if(other.previous!=nullptr)
-		{ 
+		changes = new (std::nothrow) char* [other.changes_count];
 		previous = new(std::nothrow) R_Image[other.images_count];
-		if(previous!=nullptr)
-		{ 
-		for (size_t i = 0; i < other.images_count; ++i)
+		if (previous == nullptr || changes == nullptr)
 		{
-			previous[i] = other.previous[i];
-		}
-		}
+			std::cout << "Error with memory allocation\n" << "Images not copied\n";
+			del();
+			return;
 		}
 		for (size_t i = 0; i < other.images_count; ++i)
-		{//here
-			images[i] = other.images[i];
+			previous[i] = other.previous[i];
+
+		for (size_t i = 0; i < other.changes_count; ++i)
+		{
+			changes[i] = new(std::nothrow) char[strlen(other.changes[i]) + 1];
+			if (changes[i] == nullptr)
+			{
+				std::cout << "Error with memory allocation\n" << "Images not copied\n";
+				del();
+				return;
+			}
+			strcpy(changes[i], other.changes[i]);
 		}
-		ID = other.ID;
-		images_count = other.images_count;
-		changes_count = other.changes_count;
 	}
-	else
+	if (images == nullptr)
 	{
-		std::cout << "Error with memory allocation\n"<<"Images not copied\n";
+		std::cout << "Error with memory allocation\n" << "Images not copied\n";
+		del();
 		return;
 	}
+
+	for (size_t i = 0; i < other.images_count; ++i)
+		images[i] = other.images[i];
+
+	ID = other.ID;
+	images_count = other.images_count;
+	changes_count = other.changes_count;
 }
-bool Session::add(const std::string file_name)
-{//doesnt return false whn it should
-	//because of unfinished input?
-	if( images!=nullptr)
-	{ 
-	R_Image* images_temp=nullptr;
-	images_temp = new(std::nothrow) R_Image[images_count];
-	if (images_temp != nullptr)
-	{
-		for (size_t i = 0; i < images_count; ++i)
-		{//here
-			images_temp[i] = images[i];
-		}
-		delete[] images;
-		images = new(std::nothrow) R_Image[images_count + 1];
-			if (images != nullptr)
-			{
-				for (size_t i = 0; i < images_count; ++i)
-				{
-					images[i] = images_temp[i];
-
-				}
-				
-				if(images[images_count].getImage(file_name)==false)
-				{
-					delete[] images;
-					images = images_temp;
-					
-					std::cout << "Error with memory allocation1\n" << "Image not added\n";
-					return false;
-				}
-				else
-				{
-					delete[] images_temp;
-					images_count++;
-					return true;
-					
-				}
-				
-			}
-			else
-			{
-				images = images_temp;
-				std::cout << "Error with memory allocation2\n"<<"Image not added\n";
-				return false;
-
-			}
-	}
-	else
+bool Session::add(const char* file_name)
+{ 
+	R_Image* images_temp = new(std::nothrow) R_Image[images_count+1];
+	if (images_temp == nullptr)
 	{
 		std::cout << "Error with memory allocation3\n" << "Image not added\n";
 		return false;
 	}
-	}
-	else
-	{
-		images = new(std::nothrow) R_Image[images_count + 1];
-		if (images != nullptr)
+		for (size_t i = 0; i < images_count; ++i)
 		{
-			if (images[images_count].getImage(file_name) == false)
-			{
-				delete[] images;
-				images = nullptr;
-				return false;
-			}
-			else
-			{
-				images_count++;
-				return true;
-			}
+			images_temp[i] = images[i];
 		}
-		else return false;
-	}
+				
+		if(images_temp[images_count].getImage(file_name)==false)
+		{
+			std::cout << "Error with memory allocation1\n" << "Image not added\n";
+			return false;
+		}
+		else
+		{
+			delete[] images;
+			images = images_temp;
+			images_count++;
+			return true;
+		}
 }
 void Session::del()
 {
 	delete[] images;
 	delete[] previous;
+	for (size_t i = 0; i < changes_count; ++i)
+		delete[] changes[i];
 	delete[] changes;
 }
 
@@ -160,49 +126,44 @@ bool Session::is_default()const
 	else return false;
 }
 
-bool Session::add_changes(const std::string& change)
+bool Session::add_changes(const char* change)
 {
-	std::string* changes_temp = new(std::nothrow) std::string[images_count];
-	if (changes_temp != nullptr)
+	char** changes_temp = new (std::nothrow) char* [changes_count + 1];
+	if (changes_temp == nullptr)
+		return false;
+	for (size_t i = 0; i < changes_count; ++i)
 	{
-		for (size_t i = 0; i < changes_count; ++i)
-		{
-			changes_temp[i] = changes[i];
-		}
-		delete[]changes;
-		changes = new(std::nothrow)std::string[images_count + 1];
-		if (changes != nullptr)
-		{
-			for (size_t i = 0; i < changes_count; ++i)
-			{
-				changes[i] = changes_temp[i];
-			}
-
-			changes[changes_count] = change;
-			changes_count++;
-			return true;
-		}
-		else 
-		{ 
-			changes = changes_temp;
-			return false; 
-		}
+		changes_temp[i] = new(std::nothrow)char[strlen(changes[i]) + 1];
+		if (changes_temp[i] == nullptr)
+			return false;
+		changes_temp[i] = changes[i];
 	}
-	else return false;
-
+	changes_temp[changes_count] = new(std::nothrow)char[strlen(change) + 1];
+	if (changes_temp[changes_count] == nullptr)
+		return false;
+	strcpy(changes_temp[changes_count], change);
+	for (size_t i = 0; i < changes_count; ++i)
+		delete[] changes[i];
+	delete[] changes;
+	changes = changes_temp;
+	++changes_count;
+	return true;
 }
 
 
-bool Session::apply_to_all(std::string* words, size_t lenght)
+bool Session::apply_to_all(char** words, size_t lenght)
 {
 	return false;
 }
 
 void Session::print_changes() const
 {
-	if(changes_count!=0)
+	if(changes_count==0)
 	{ 
-		std::cout << "Pending changes:";
+		std::cout << "No changes made\n";
+		return;
+	}
+	std::cout << "Pending changes:";
 	for (size_t i = 0; i < changes_count; ++i)
 	{
 		std::cout << changes[i];
@@ -210,11 +171,7 @@ void Session::print_changes() const
 			std::cout<< ",";
 	}
 	std::cout << std::endl;
-	}
-	else
-	{
-		std::cout << "No changes made\n";
-	}
+	
 	return;
 }
 

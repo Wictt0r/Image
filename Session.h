@@ -11,12 +11,12 @@ public:
 
 	Session& operator=(const Session&);
 	
-	bool add(const std::string);
+	bool add(const char*);
 	void undo();
 	bool is_default()const;
 	size_t get_ID()const { return ID; }
-	bool add_changes(const std::string&);
-	bool apply_to_all(std::string*,size_t);
+	bool add_changes(const char*);
+	bool apply_to_all(char**,size_t);
 	/*size_t get_images_count() { return images_count; }
 	R_Image* get_images() { return images; }
 	R_Image* get_previous() { return previous; }
@@ -32,12 +32,5 @@ private:
 	size_t images_count;
 	R_Image* previous;
 	size_t ID,changes_count;
-	std::string* changes;
-
-
-	
-
-
-
+	char** changes;
 };
-

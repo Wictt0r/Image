@@ -1,9 +1,10 @@
 #include "R_Image.h"
 #include<iostream>
-#include<string>
 #include<fstream>
+#include<string>
+#pragma warning(disable:4996)
 
-R_Image::R_Image() :type('\0'), width(0), height(0), matrix(nullptr), pixel_max(0),file_name("") {}
+R_Image::R_Image() :type('\0'), width(0), height(0), matrix(nullptr), pixel_max(0),file_name(nullptr) {}
 R_Image::R_Image(const R_Image& other)
 {
 	copy(other);
@@ -20,6 +21,7 @@ void R_Image::del()
 		delete[] matrix[i];
 	}
 	delete[] matrix;
+	delete[] file_name;
 	return;
 }
 void R_Image::copy(const R_Image& other)
@@ -41,20 +43,28 @@ void R_Image::copy(const R_Image& other)
 			}
 			else
 			{
-				std::cout << "Error with memory allocation3\n" << "Image deleted\n";
+				std::cout << "Error with memory allocation3\n";
 				del();
 				return;
 			}
 		}
+		file_name = new(std::nothrow) char[strlen(other.file_name) + 1];
+		if (file_name == nullptr)
+		{
+			std::cout << "Error with memmory allocation\n";
+			del();
+			return;
+		}
+		strcpy(file_name, other.file_name);
 				type = other.type;
 				width = other.width;
 				height = other.height;
 				pixel_max = other.pixel_max;
-				file_name = other.file_name;
+				
 	}
 	else
 	{
-		std::cout << "Error with memory allocation4\n"<<"Image deleted\n";
+		std::cout << "Error with memory allocation4\n";
 		return;
 	}
 	
@@ -101,7 +111,7 @@ R_Image& R_Image ::operator= (const R_Image& other)
 
 bool R_Image::operator==(const R_Image& other) const
 {
-	if (type == other.type && width == other.width && height == other.height && pixel_max == other.pixel_max && file_name == other.file_name)
+	if (type == other.type && width == other.width && height == other.height && pixel_max == other.pixel_max && strcmp(file_name,other.file_name)==0)
 	{
 		for (size_t i = 0; i < width; ++i)
 		{
@@ -136,11 +146,19 @@ void R_Image::set_default()
 }
 */
 
-bool R_Image::getImage(const std::string name)
+bool R_Image::getImage(const char * name)
 {
 	
 	std::ifstream file;
 	file.open(name);
+	file_name = new (std::nothrow) char[strlen(name) + 1];
+	if (file_name == nullptr)
+	{
+
+		file.close();
+		return false;
+	}
+	strcpy(file_name, name);
 	if (file.good()==true)
 	{
 		std::string line;
@@ -151,6 +169,8 @@ bool R_Image::getImage(const std::string name)
 		if (type != '1' && type != '2' && type != '3')
 		{
 			std::cout << "Not a valid file type";
+
+			file.close();
 			return false;
 		}
 		//getline(file, line);
@@ -197,8 +217,7 @@ bool R_Image::getImage(const std::string name)
 			}
 		}
 		else std::cout << "Error with memory allocation";
-		file.close();
-		file_name = name;
+		
 		return true;
 		/*for (size_t i = 0; i < width; ++i)
 		{
@@ -210,7 +229,12 @@ bool R_Image::getImage(const std::string name)
 		}
 		std::cout << std::endl;*/
 	}
-	else return false;
+	else  
+	{
+
+		file.close();
+		return false; 
+	}
 }
 
 bool R_Image:: grayscale()
@@ -218,7 +242,7 @@ bool R_Image:: grayscale()
 	return false;
 }
 
-bool R_Image::rotate(const std::string& direction)
+bool R_Image::rotate(const char* direction)
 {
 
 	if (height < 35)
@@ -242,7 +266,7 @@ bool R_Image::rotate(const std::string& direction)
 		if (type == '1' || type == '2')
 		{
 			
-				if (direction == "right")
+				if (strcmp(direction, "right") == 0)
 					for (size_t i = 0; i < width; ++i)
 					{
 						for (size_t j = 0; j < height; ++j)
@@ -250,7 +274,7 @@ bool R_Image::rotate(const std::string& direction)
 							matrix_temp[height - j - 1][i] = matrix[i][j];
 						}
 					}
-				if (direction == "left")
+				if (strcmp(direction, "left") == 0)
 					for (size_t i = 0; i < width; ++i)
 					{
 						for (size_t j = 0; j < height; ++j)
@@ -264,7 +288,7 @@ bool R_Image::rotate(const std::string& direction)
 		
 		else if (type == '3')
 		{
-			if (direction == "right")
+			if (strcmp(direction,"right")==0)
 				for (size_t i = 0; i < width; i+=3)
 				{
 					for (size_t j = 0; j < height; j+=3)
@@ -272,7 +296,7 @@ bool R_Image::rotate(const std::string& direction)
 						matrix_temp[height - j - 1][i] = matrix[i][j];
 					}
 				}
-			if (direction == "left")
+			if (strcmp(direction,"left")==0)
 				for (size_t i = 0; i < width; ++i)
 				{
 					for (size_t j = 0; j < height; ++j)

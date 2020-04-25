@@ -1,6 +1,6 @@
 #include <iostream>
-#include <string>
 #include "Interface.h"
+#pragma warning(disable:4996)
 
 Interface::Interface(const Interface& other)
 {
@@ -30,8 +30,11 @@ void Interface::del()
 void Interface::copy(const Interface& other)
 {
 	sessions = new(std::nothrow)Session[other.sessions_counter];
-	if (sessions != nullptr)
+	if (sessions == nullptr)
 	{
+		std::cout << "Error with memmory allocation(copy Interface)";
+		return;
+	}
 		for (size_t i = 0; i < other.sessions_counter; ++i)
 		{
 			sessions[i] = other.sessions[i];
@@ -40,67 +43,46 @@ void Interface::copy(const Interface& other)
 		sessions_counter = other.sessions_counter;
 		current_ID = other.current_ID;
 		ID_counter = other.ID_counter;
-	}
-	else
-	{
-		std::cout << "Error with memmory allocation(copy Interface)";
-		return;
-	}
 		return;
 }
 
-bool Interface::load(std::string* words, size_t lenght,size_t &ID_counter)
+bool Interface::load(char** words, size_t lenght,size_t &ID_counter)
 {
-	Session* sessions_temp = nullptr;
-	sessions_temp = new(std::nothrow) Session[sessions_counter];
-	if (sessions_temp != nullptr)
+	Session* sessions_temp = new(std::nothrow) Session[sessions_counter+1];
+	if (sessions_temp == nullptr)
 	{
+		return false;
+	}
 		for (size_t i = 0; i < sessions_counter; ++i)
 		{
 			sessions_temp[i] = sessions[i];
-		}
-		delete[] sessions;
-		sessions = new(std::nothrow) Session[sessions_counter + 1];
-		if (sessions != nullptr)
-		{
-			for (size_t i = 0; i < sessions_counter; ++i)
+			if (sessions_temp[i].is_default() == true)
 			{
-				sessions[i] = sessions_temp[i];
+				delete[] sessions_temp;
+				return false;
 			}
-
+		}
 			for (size_t i = 1; i < lenght; ++i)
 			{
-				if (sessions[sessions_counter].add(words[i]) == false)
+				if (sessions_temp[sessions_counter].add(words[i]) == false)
 					std::cout << "Error\nImage " << words[i] << " not added\n";
 			}
-			if (sessions[sessions_counter].is_default() == true)
+			if (sessions_temp[sessions_counter].is_default() == false)
 			{
 				delete[] sessions;
 				sessions = sessions_temp;
-				return false;
-			}
-			else
-			{
-				delete[] sessions_temp;
 				current_ID = sessions_counter;
 				current = &sessions[current_ID];
 				ID_counter++;
 				current->set_ID(ID_counter);
 				sessions_counter += 1;
-				
+
 				return true;
 			}
-		}
-		else
-		{
-			sessions = sessions_temp;
-			return false;
-		}
-	}
-	else
-	{
-		return false;
-	}
+			else
+			{
+				return false;
+			}
 }
 
 bool Interface::close(const size_t close_ID)
@@ -116,19 +98,16 @@ bool Interface::close(const size_t close_ID)
 	}
 	else
 	{
-		//std::cout << "current->get_ID(): " << current->get_ID() << std::endl;
-		Session* new_sessions;
-		new_sessions = new(std::nothrow) Session[sessions_counter - 1];
-		if (new_sessions != nullptr)
+		Session* new_sessions = new(std::nothrow) Session[sessions_counter - 1];
+		if (new_sessions == nullptr)
 		{
-			for (size_t i = 0; i < close_ID; ++i)
+			return false;
+		}
+		size_t new_session_ID = 0;
+			for (size_t i = 0 ; i < sessions_counter; ++i)
 			{
-				new_sessions[i] = sessions[i];
-			}
-			//here
-			size_t new_session_ID = close_ID;
-			for (size_t i = close_ID + 1; i < sessions_counter; ++i)
-			{
+				if (i == close_ID)
+					continue;
 				new_sessions[new_session_ID] = sessions[i];
 				new_session_ID++;
 			}
@@ -137,21 +116,16 @@ bool Interface::close(const size_t close_ID)
 			sessions = new_sessions;
 			sessions_counter--;
 			current_ID = sessions_counter-1;
-			//std::cout << "current->get_ID(): " << current->get_ID() << std::endl;
-			//std::cout << "sessions[sessions_counter].get_ID(): " << sessions[sessions_counter-1].get_ID() << std::endl;
 			current = &sessions[sessions_counter-1];
-			//std::cout << "current->get_ID(): " << current->get_ID() << std::endl;
 
 			return true;
-		}
-		else return false;
+		
 	}
 }
 
 void Interface::split_input(char* input, size_t lenght)
 {
 	size_t counter = 1;
-	std::string* words;
 	for (size_t i = 0; i < lenght; ++i)
 	{
 		if (input[i] == ' ')
@@ -161,43 +135,53 @@ void Interface::split_input(char* input, size_t lenght)
 				i++;
 		}
 	}
-	words = new (std::nothrow) std::string[counter];
-	if (words != nullptr)
-	{
-		size_t current = 0;
-		for (size_t i = 0; i < counter; ++i)
-		{
-			for (size_t j = current; j < lenght; ++j)
-			{
-				if (input[j] == ' ')
-				{
-					while (input[j] == ' ')
-					{
-						j++;
-					}
-					current = j;
-					break;
-				}
-				words[i] = words[i] + input[j];
-
-			}
-		}
-		detect_function(words, counter);
-		delete[] words;
-	}
-	else
+	char** split_input= new (std::nothrow) char*[counter];
+	if (split_input == nullptr)
 	{
 		std::cout << "Error with memory allocation" << std::endl;
+		return;
 	}
-	return;
-
+	size_t split_input_counter = 0;
+	char* token = strtok(input, " ");
+	split_input[split_input_counter]= new(std::nothrow) char[strlen(token) + 1];
+	if (split_input[split_input_counter] == nullptr)
+	{
+		std::cout << "Error\n";
+	}
+	strcpy(split_input[split_input_counter], token);
+	++split_input_counter;
+	while (token != nullptr)
+	{
+		token = strtok(nullptr, " ");
+		if (token != nullptr)
+		{
+			split_input[split_input_counter] = new(std::nothrow) char[strlen(token) + 1];
+			if (split_input[split_input_counter] == nullptr)
+			{
+				std::cout << "Error";
+				delete[] token;
+				for (size_t i = 0; i <= split_input_counter; ++i)
+					delete[] split_input[i];
+				delete split_input;
+				return;
+			}
+			strcpy(split_input[split_input_counter], token);
+			++split_input_counter;
+		}
+	}
+		detect_function(split_input, counter);
+		delete[] token;
+		for (size_t i = 0; i < split_input_counter; ++i)
+			delete[] split_input[i];
+		delete split_input;
+		return;
 }
 
-void Interface::detect_function(std::string* words, size_t lenght)
+void Interface::detect_function(char** split_input, size_t lenght)
 {
-	if (words[0] == "load")
+	if (strcmp(split_input[0], "load")==0)
 	{
-		if (load(words, lenght,ID_counter) == true)
+		if (load(split_input, lenght,ID_counter) == true)
 		{
 			std::cout << "Session with ID:" << current->get_ID() << " started\n";
 		}
@@ -207,16 +191,18 @@ void Interface::detect_function(std::string* words, size_t lenght)
 		}
 		return;
 	}
-	if (words[0] == "close")
+	if (strcmp(split_input[0], "close") == 0)
 	{
 		std::cout << "Closing sessions with ID:" << current->get_ID() << "\n";
-		//std::cout << "current_ID:" << current_ID<<std::endl;
 		if(close(current_ID)==true)
 		{ 
-		if(current!=nullptr)
+		if(current==nullptr)
 		{ 
-		
-		std::cout<< "Current acitve one is:" << current->get_ID()<< std::endl;
+			std::cout << "No remaining sessions\n";
+		}
+		else
+		{
+			std::cout << "Current acitve session is:" << current->get_ID() << std::endl;
 		}
 		}
 		else
@@ -225,19 +211,19 @@ void Interface::detect_function(std::string* words, size_t lenght)
 		}
 		return;
 	}
-	if (words[0] == "add")
+	if (strcmp(split_input[0], "add") == 0)
 	{
 		if(current!=nullptr)
 		{ 
 		for(size_t i=1;i<lenght;++i)
 		{ 
-			if (current->add(words[i]) == true)
+			if (current->add(split_input[i]) == true)
 			{
-				std::cout << "Image " << words[i] << " added\n";
+				std::cout << "Image " << split_input[i] << " added\n";
 			}
 			else
 			{
-				std::cout << "Coutld not add image " << words[i] << std::endl;
+				std::cout << "Coutld not add image " << split_input[i] << std::endl;
 			}
 		}
 		}
@@ -247,22 +233,21 @@ void Interface::detect_function(std::string* words, size_t lenght)
 		}
 		return;
 	}
-	if (words[0] == "save" && words[1] != "as")
+	if (strcmp(split_input[0], "save") == 0 && strcmp(split_input[1], "as") == 0)
 	{
 
 	}
-	if (words[0] == "save" && words[1] == "as")
+	if (strcmp(split_input[0], "save") == 0 && strcmp(split_input[1], "as") != 0)
 	{
 
 	}	
-	if (words[0] == "help")
+	if (strcmp(split_input[0], "help") == 0)
 	{
 
 	}
-	if (words[0] == "switch")
+	if (strcmp(split_input[0], "switch") == 0)
 	{
-		//std::cout << "sessions_counter" << sessions_counter << std::endl;
-		size_t id = std::stoi(words[1]);
+		size_t id = std::stoi(split_input[1]);
 		for (size_t i = 0; i < sessions_counter; ++i)
 		{
 			if (sessions[i].get_ID()==id)
@@ -278,7 +263,7 @@ void Interface::detect_function(std::string* words, size_t lenght)
 		std::cout << "The session does not exist or is closed\n";
 		return;
 	}
-	if (words[0] == "session" && words[1] == "info")
+	if (strcmp(split_input[0], "session") == 0 && strcmp(split_input[1], "info") == 0)
 	{
 		if (current != nullptr)
 		{
@@ -293,38 +278,38 @@ void Interface::detect_function(std::string* words, size_t lenght)
 	}
 
 
-	if (words[0] == "grayscale")
+	if (strcmp(split_input[0], "grayscale") == 0)
 	{
 	}
-	if (words[0] == "monochrome")
+	if (strcmp(split_input[0], "monochrome") == 0)
 	{
 	}
-	if (words[0] == "negative")
+	if (strcmp(split_input[0], "negative") == 0)
 	{
 	}
-	if (words[0] == "rotate")
+	if (strcmp(split_input[0], "rotate") == 0)
 	{
 		
-		if (words[1] == "right")
+		if (strcmp(split_input[1], "right") == 0)
 		{
 			
 		}
 
-		if (words[1] == "left")
+		if (strcmp(split_input[1], "left") == 0)
 		{
 			
 		}
 		
 	}
-	if (words[0] == "collage")
+	if (strcmp(split_input[0], "collage") == 0)
 	{
 
 	}
-	if (words[0] == "undo")
+	if (strcmp(split_input[0], "undo") == 0)
 	{
 		current->undo();
 	}
-	if(words[0]!="exit"||lenght>1)
+	if(strcmp(split_input[0], "exit") != 0 ||lenght>1)
 	std::cout << "Invalid input\n";
 
 }

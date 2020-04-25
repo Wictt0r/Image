@@ -12,9 +12,9 @@ public:
 
 	R_Image& operator=(const R_Image&);
 	bool operator==(const R_Image&)const;
-	bool getImage(const std::string);
+	bool getImage(const char*);
 	bool grayscale();
-	bool rotate(const std::string&);
+	bool rotate(const char*);
 	
 	void print_file_name()const;
 	void del();
@@ -28,7 +28,7 @@ private:
 	size_t width, height;
 	size_t** matrix;
 	size_t pixel_max;
-	std::string file_name;
+	char* file_name;
 
 	
 };
