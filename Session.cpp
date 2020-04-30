@@ -30,6 +30,11 @@ Session& Session::operator=(const Session& other)
 void Session::copy(const Session& other)
 {
 	images = new (std::nothrow) R_Image[other.images_count];
+	if (images == nullptr)
+	{
+		std::cout << "Error with memory allocation\n" << "Images not copied\n";
+		return;
+	}
 	if (other.previous != nullptr && other.changes != nullptr)
 	{
 		changes = new (std::nothrow) char* [other.changes_count];
@@ -55,12 +60,7 @@ void Session::copy(const Session& other)
 			strcpy(changes[i], other.changes[i]);
 		}
 	}
-	if (images == nullptr)
-	{
-		std::cout << "Error with memory allocation\n" << "Images not copied\n";
-		del();
-		return;
-	}
+	
 
 	for (size_t i = 0; i < other.images_count; ++i)
 		images[i] = other.images[i];
@@ -69,6 +69,7 @@ void Session::copy(const Session& other)
 	images_count = other.images_count;
 	changes_count = other.changes_count;
 }
+
 bool Session::add(const char* file_name)
 { 
 	R_Image* images_temp = new(std::nothrow) R_Image[images_count+1];
@@ -95,6 +96,7 @@ bool Session::add(const char* file_name)
 			return true;
 		}
 }
+
 void Session::del()
 {
 	delete[] images;
@@ -151,9 +153,38 @@ bool Session::add_changes(const char* change)
 }
 
 
-bool Session::apply_to_all(char** words, size_t lenght)
+bool Session::apply_to_all(bool (R_Image::*function)())
 {
-	return false;
+	previous = new(std::nothrow)R_Image[images_count];
+	if (previous == nullptr)
+		return false;
+	for (size_t i = 0; i < images_count; ++i)
+		previous[i] = images[i];
+
+	bool flag = true;
+	for (size_t i = 0; i < images_count; ++i)
+	{
+		if ((images[i].*function)() == false)
+		{
+			flag = false;
+			break;
+		}
+	}
+	return flag;
+}
+
+void Session::save_all()
+{
+	for (size_t i = 0; i < images_count; ++i)
+		images[i].save();
+	return;
+}
+
+void Session::save_as_all()
+{
+	for (size_t i = 0; i < images_count; ++i)
+		images[i].save_as("please.pgm");
+	return;
 }
 
 void Session::print_changes() const

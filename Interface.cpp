@@ -235,11 +235,13 @@ void Interface::detect_function(char** split_input, size_t lenght)
 	}
 	if (strcmp(split_input[0], "save") == 0 && strcmp(split_input[1], "as") == 0)
 	{
-
+		current->save_as_all();
+		return;
 	}
 	if (strcmp(split_input[0], "save") == 0 && strcmp(split_input[1], "as") != 0)
 	{
-
+		//current->save_all();
+		return;
 	}	
 	if (strcmp(split_input[0], "help") == 0)
 	{
@@ -276,8 +278,6 @@ void Interface::detect_function(char** split_input, size_t lenght)
 			std::cout << "No active session\n";
 		return;
 	}
-
-
 	if (strcmp(split_input[0], "grayscale") == 0)
 	{
 	}
@@ -292,12 +292,30 @@ void Interface::detect_function(char** split_input, size_t lenght)
 		
 		if (strcmp(split_input[1], "right") == 0)
 		{
-			
+			if (current->apply_to_all(&R_Image::rotate_right)==true)
+			{
+				std::cout << "Images rotated right\n";
+				current->add_changes("rotate right");
+			}
+			else
+			{
+				std::cout << "Error\nDid not rotate images\n";
+			}
+			return;
 		}
 
 		if (strcmp(split_input[1], "left") == 0)
 		{
-			
+			if (current->apply_to_all(&R_Image::rotate_left) == true)
+			{
+				std::cout << "Images rotated left\n";
+				current->add_changes("rotate left");
+			}
+			else
+			{
+				std::cout << "Error\nDid not rotate images\n";
+			}
+			return;
 		}
 		
 	}

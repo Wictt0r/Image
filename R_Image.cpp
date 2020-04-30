@@ -4,6 +4,10 @@
 #include<string>
 #pragma warning(disable:4996)
 
+#define PBMA '1'
+#define PGMA '2'
+#define PPMA '3'
+
 R_Image::R_Image() :type('\0'), width(0), height(0), matrix(nullptr), pixel_max(0),file_name(nullptr) {}
 R_Image::R_Image(const R_Image& other)
 {
@@ -16,7 +20,7 @@ R_Image::~R_Image()
 
 void R_Image::del()
 {
-	for (size_t i = 0; i < width; ++i)
+	for (size_t i = 0; i < height; ++i)
 	{
 		delete[] matrix[i];
 	}
@@ -28,15 +32,15 @@ void R_Image::copy(const R_Image& other)
 {
 	//std::cout << other.type << " " << other.width << " " << other.height << " " << other.pixel_max << " " << other.file_name << " \n";
 		
-	matrix = new (std::nothrow)size_t* [other.width];
+	matrix = new (std::nothrow)size_t* [other.height];
 	if (matrix != nullptr)
 	{
-		for (size_t i = 0; i < other.width; ++i)
+		for (size_t i = 0; i < other.height; ++i)
 		{
-			matrix[i] = new (std::nothrow)size_t[other.height];
+			matrix[i] = new (std::nothrow)size_t[other.width];
 			if (matrix[i] != nullptr)
 			{
-				for (size_t j = 0; j < height; ++j)
+				for (size_t j = 0; j < other.width; ++j)
 				{
 					matrix[i][j] = other.matrix[i][j];
 				}
@@ -60,7 +64,13 @@ void R_Image::copy(const R_Image& other)
 				width = other.width;
 				height = other.height;
 				pixel_max = other.pixel_max;
-				
+				/*for (int i = 0; i < width; ++i)
+				{
+					for (int j = 0; j < height; ++j)
+						std::cout << matrix[i][j] << " ";
+					std::cout << std::endl;
+				}*/
+
 	}
 	else
 	{
@@ -189,15 +199,15 @@ bool R_Image::getImage(const char * name)
 			//while (line[0] == '#');
 			//getline(file, line);
 		}
-		matrix = new(std::nothrow)size_t * [width];
+		matrix = new(std::nothrow)size_t * [height];
 		if (matrix != nullptr)
 		{
-			for (size_t i = 0; i < width; ++i)
+			for (size_t i = 0; i < height; ++i)
 			{
-				matrix[i] = new (std::nothrow)size_t[height];
+				matrix[i] = new (std::nothrow)size_t[width];
 				if (matrix[i] != nullptr)
 				{
-					for (size_t j = 0; j < height; ++j)
+					for (size_t j = 0; j < width; ++j)
 					{
 						if (type == '1')
 						{
@@ -242,18 +252,18 @@ bool R_Image:: grayscale()
 	return false;
 }
 
-bool R_Image::rotate(const char* direction)
+bool R_Image::rotate_right()
 {
-
-	if (height < 35)
+		
+	if (type == PBMA || type == PGMA)
 	{
 		size_t** matrix_temp;
-		matrix_temp = new(std::nothrow) size_t * [height];
+		matrix_temp = new(std::nothrow) size_t * [width];
 		if (matrix_temp != nullptr)
 		{
-			for (size_t i = 0; i < height; ++i)
+			for (size_t i = 0; i < width; ++i)
 			{
-				matrix_temp[i] = new(std::nothrow) size_t[width];
+				matrix_temp[i] = new(std::nothrow) size_t[height];
 				if (matrix_temp[i] == nullptr)
 				{
 					for (size_t p = 0; p <= i; ++p)
@@ -262,57 +272,180 @@ bool R_Image::rotate(const char* direction)
 					return false;
 				}
 			}
-
-		if (type == '1' || type == '2')
-		{
 			
-				if (strcmp(direction, "right") == 0)
-					for (size_t i = 0; i < width; ++i)
-					{
-						for (size_t j = 0; j < height; ++j)
-						{
-							matrix_temp[height - j - 1][i] = matrix[i][j];
-						}
-					}
-				if (strcmp(direction, "left") == 0)
-					for (size_t i = 0; i < width; ++i)
-					{
-						for (size_t j = 0; j < height; ++j)
-						{
-							matrix_temp[j][height - i] = matrix[i][j];
-						}
-					}
-				del();
-				matrix = matrix_temp;
-			}
-		
-		else if (type == '3')
-		{
-			if (strcmp(direction,"right")==0)
-				for (size_t i = 0; i < width; i+=3)
+			for (size_t i = 0; i < width; ++i)
+			{
+				for (size_t j = 0; j < height; ++j)
 				{
-					for (size_t j = 0; j < height; j+=3)
-					{
-						matrix_temp[height - j - 1][i] = matrix[i][j];
-					}
+					matrix_temp[i][j] = matrix[height - j - 1][i];
 				}
-			if (strcmp(direction,"left")==0)
-				for (size_t i = 0; i < width; ++i)
+			}
+			for (size_t i = 0; i < height; ++i)
+			{
+				delete[] matrix[i];
+			}
+			delete[] matrix;
+			matrix = matrix_temp;
+			width += height;
+			height = width - height;
+			width -= height;
+			
+		}
+	}
+		else if (type == PPMA)
+		{
+				size_t** matrix_temp;
+				matrix_temp = new(std::nothrow) size_t * [width/3];
+				if (matrix_temp != nullptr)
+				{
+					for (size_t i = 0; i < width/3; ++i)
+					{
+						matrix_temp[i] = new(std::nothrow) size_t[height*3];
+						if (matrix_temp[i] == nullptr)
+						{
+							for (size_t p = 0; p <= i; ++p)
+								delete[] matrix_temp[p];
+							delete[] matrix_temp;
+							return false;
+						}
+					}
+
+				for (size_t i = 0; i < width; i+=3)
 				{
 					for (size_t j = 0; j < height; ++j)
 					{
-						matrix_temp[j][height - i] = matrix[i][j];
+						matrix_temp[height - j - 1][i] = matrix[i][j];
+						matrix_temp[height - j - 1][i+1] = matrix[i+1][j];
+						matrix_temp[height - j - 1][i+2] = matrix[i+2][j];
 					}
 				}
-			del();
+				for (size_t i = 0; i < height; ++i)
+				{
+					delete[] matrix[i];
+				}
+				delete[] matrix;
 			matrix = matrix_temp;
+			width += height;
+			height = width - height;
+			width -= height;
 		}
 		}
 		else return false;
-	}
-	else
+}
+
+bool R_Image::rotate_left()
+{
+	if (type == PBMA || type == PGMA)
 	{
-		std::cout << "Image height exceeds standard image width\n";
-		return false;
+		size_t** matrix_temp;
+		matrix_temp = new(std::nothrow) size_t * [width];
+		for (size_t i = 0; i < width; ++i)
+		{
+			matrix_temp[i] = new(std::nothrow) size_t[height];
+			if (matrix_temp[i] == nullptr)
+			{
+				for (size_t p = 0; p <= i; ++p)
+					delete[] matrix_temp[p];
+				delete[] matrix_temp;
+				return false;
+			}
+		}
+			for (size_t i = 0; i < width; ++i)
+			{
+				for (size_t j = 0; j < height; ++j)
+				{
+					matrix_temp[i][j] = matrix[j][width - i - 1];
+				}
+			}
+			for (size_t i = 0; i < height; ++i)
+			{
+				delete[] matrix[i];
+			}
+			delete[] matrix;
+			matrix = matrix_temp;
+			width += height;
+			height = width - height;
+			width -= height;
+			matrix = matrix_temp;
+		
 	}
+		else if (type == PPMA)
+		{
+				size_t** matrix_temp;
+				matrix_temp = new(std::nothrow) size_t * [width / 3];
+				if (matrix_temp != nullptr)
+				{
+					for (size_t i = 0; i < width / 3; ++i)
+					{
+						matrix_temp[i] = new(std::nothrow) size_t[height * 3];
+						if (matrix_temp[i] == nullptr)
+						{
+							for (size_t p = 0; p <= i; ++p)
+								delete[] matrix_temp[p];
+							delete[] matrix_temp;
+							return false;
+						}
+					}
+				for (size_t i = 0; i < width; i+=3)
+				{
+					for (size_t j = 0; j < height; ++j)
+					{
+						matrix_temp[j][height - (i)] = matrix[i][j];
+						matrix_temp[j][height - (i+1)] = matrix[i+1][j];
+						matrix_temp[j][height - (i+2)] = matrix[i+2][j];
+					}
+				}
+				for (size_t i = 0; i < height; ++i)
+				{
+					delete[] matrix[i];
+				}
+				delete[] matrix;
+			matrix = matrix_temp;
+			width += height;
+			height = width - height;
+			width -= height;
+		}
+	}
+	else return false;
+}
+
+void R_Image::save() 
+{
+	save_as(file_name);
+	return;
+}
+
+void R_Image::save_as(const char* new_name) 
+{
+	std::ofstream file;
+	file.open(new_name,std::ios::trunc);
+	file << 'P' << type << std::endl;
+	if(type==PPMA)
+	file << width/3 << ' ' << height << std::endl;
+	else
+	file << width << ' ' << height << std::endl;
+	if (type == PPMA || type == PGMA)
+	{
+		file << pixel_max << std::endl;
+	}
+	size_t line_limit_counter = 0,line_limit=0;
+	if (type == PPMA) line_limit = 12;
+	if (type == PGMA) line_limit = 19;
+	if (type == PBMA) line_limit = 39;
+	for (size_t i = 0; i < height; ++i)
+	{
+		for (size_t j = 0; j < width; ++j)
+		{
+			file << matrix[i][j] << ' ';
+			line_limit_counter += 1;
+			if (line_limit_counter == line_limit)
+			{
+				file<< std::endl;
+				line_limit_counter = 0;
+			}
+			
+		}
+	}
+	file.close();
+	return;
 }

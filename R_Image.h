@@ -1,6 +1,11 @@
 #pragma once
 #include<iostream>
 #include<string>
+#include<fstream>
+#define PBMA '1'
+#define PGMA '2'
+#define PPMA '3'
+
 
 
 class R_Image
@@ -14,7 +19,10 @@ public:
 	bool operator==(const R_Image&)const;
 	bool getImage(const char*);
 	bool grayscale();
-	bool rotate(const char*);
+	bool rotate_right();
+	bool rotate_left();
+	void save();
+	void save_as(const char *);
 	
 	void print_file_name()const;
 	void del();
@@ -29,6 +37,4 @@ private:
 	size_t** matrix;
 	size_t pixel_max;
 	char* file_name;
-
-	
 };
