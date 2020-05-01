@@ -352,7 +352,7 @@ bool R_Image::rotate_right()
 						}
 					}
 
-				for (size_t i = 0; i < width; i+=3)
+				for (size_t i = 0; i < width-2; i+=3)
 				{
 					for (size_t j = 0; j < height; ++j)
 					{
