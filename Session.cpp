@@ -137,13 +137,8 @@ bool Session::add_changes(const char* change)
 	{
 		changes_temp[i] = new(std::nothrow)char[strlen(changes[i]) + 1];
 		if (changes_temp[i] == nullptr)
-		{
-			for (size_t j = 0; j < i; ++j)
-				delete[] changes_temp[i];
-			delete[] changes_temp;
 			return false;
-		}
-		strcpy(changes_temp[i],changes[i]);
+		changes_temp[i] = changes[i];
 	}
 	changes_temp[changes_count] = new(std::nothrow)char[strlen(change) + 1];
 	if (changes_temp[changes_count] == nullptr)
