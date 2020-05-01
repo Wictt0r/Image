@@ -280,12 +280,39 @@ void Interface::detect_function(char** split_input, size_t lenght)
 	}
 	if (strcmp(split_input[0], "grayscale") == 0)
 	{
+		if (current->apply_to_all(&R_Image::grayscale) == true)
+		{
+			current->add_changes("grayscale");
+		}
+		else
+		{
+			std::cout << "Error\nNo changes made\n";
+		}
+		return;
 	}
 	if (strcmp(split_input[0], "monochrome") == 0)
 	{
+		if (current->apply_to_all(&R_Image::monochrome) == true)
+		{
+			current->add_changes("monochrome");
+		}
+		else
+		{
+			std::cout << "Error\nNo changes made\n";
+		}
+		return;
 	}
 	if (strcmp(split_input[0], "negative") == 0)
 	{
+		if (current->apply_to_all(&R_Image::negative) == true)
+		{
+			current->add_changes("negative");
+		}
+		else
+		{
+			std::cout << "Error\nNo changes made\n";
+		}
+		return;
 	}
 	if (strcmp(split_input[0], "rotate") == 0)
 	{

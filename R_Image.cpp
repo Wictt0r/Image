@@ -1,12 +1,13 @@
 #include "R_Image.h"
 #include<iostream>
 #include<fstream>
-#include<string>
+#include<cstring>
 #pragma warning(disable:4996)
 
 #define PBMA '1'
 #define PGMA '2'
 #define PPMA '3'
+#define MAX_LINE_LENGHT 70
 
 R_Image::R_Image() :type('\0'), width(0), height(0), matrix(nullptr), pixel_max(0),file_name(nullptr) {}
 R_Image::R_Image(const R_Image& other)
@@ -155,99 +156,140 @@ void R_Image::set_default()
 	return;
 }
 */
+char* R_Image::skip_comment(std::ifstream &file)
+{
+	char word[100];
+	file >> word;
+	while (word[0] == '#' && file.good())
+	{
+		file.ignore(MAX_LINE_LENGHT, '\n');
+		file >> word;
+	}
+	return word;
+}
 
 bool R_Image::getImage(const char * name)
 {
-	
 	std::ifstream file;
 	file.open(name);
-	file_name = new (std::nothrow) char[strlen(name) + 1];
+	file_name = new(std::nothrow) char[strlen(name) + 1];
 	if (file_name == nullptr)
+		return false;
+	strcpy(file_name, name);
+	if (file.good() == true)
 	{
-
-		file.close();
+		char word[100];
+		strcpy(word, skip_comment(file));
+		type = word[1];
+		strcpy(word, skip_comment(file));
+		width = atoi(word);//converts char* to int
+		file >> word;
+		height = atoi(word);//converts char* to int
+		if (type == PBMA)
+			return get_PBMA(file);
+		if (type == PGMA)
+			return get_PGMA(file);
+		if (type == PPMA)
+			return get_PPMA(file);
+	}
+	del();
+	file.close();
+	return false;
+}
+bool R_Image::get_PBMA(std::ifstream& file)
+{
+	matrix = new(std::nothrow) size_t * [height];
+	if (matrix == nullptr)
+	{
+		del();
 		return false;
 	}
-	strcpy(file_name, name);
-	if (file.good()==true)
+	for (size_t i = 0; i < height; ++i)
 	{
-		std::string line;
-		getline(file, line);
-		//while (line[0] == '#');
-		//getline(file,trash);
-		type = line[1];
-		if (type != '1' && type != '2' && type != '3')
+		matrix[i] = new(std::nothrow)size_t[width];
+		if (matrix[i] == nullptr)
 		{
-			std::cout << "Not a valid file type";
-
-			file.close();
+			del();
 			return false;
 		}
-		//getline(file, line);
-		//while (line[0] == '#');
-		//getline(file, trash);
-		file >> width >> height;
-		//std::cout << width <<std::e ndl <<height;
-		if (type == '3')width *= 3;
-		if (type == '2')
-		{
-			//getline(file, line);
-			//while (line[0] == '#');
-			//getline(file, line);
-			file >> pixel_max;
-			//getline(file, line);
-			//while (line[0] == '#');
-			//getline(file, line);
-		}
-		matrix = new(std::nothrow)size_t * [height];
-		if (matrix != nullptr)
-		{
-			for (size_t i = 0; i < height; ++i)
-			{
-				matrix[i] = new (std::nothrow)size_t[width];
-				if (matrix[i] != nullptr)
-				{
-					for (size_t j = 0; j < width; ++j)
-					{
-						if (type == '1')
-						{
-							matrix[i][j] = file.get();
-						}
-						else
-						{
-							file >> matrix[i][j];
-						}
-					}
-				}
-				else
-				{
-					del();
-					std::cout << "Error with memory allocation";
-				}
-			}
-		}
-		else std::cout << "Error with memory allocation";
-		
-		return true;
-		/*for (size_t i = 0; i < width; ++i)
-		{
-			for (size_t j = 0; j < height; ++j)
-			{
-				std::cout << matrix[i][j] << " ";
-			}
-			std::cout << std::endl;
-		}
-		std::cout << std::endl;*/
 	}
-	else  
+	for (size_t i = 0; i < height && file.good(); ++i)
 	{
-
-		file.close();
-		return false; 
+		for (size_t j = 0; j < width && file.good(); ++j)
+		{
+			char letter;
+			file.get(letter);
+			if ( letter == '#')
+			{
+				file.ignore(MAX_LINE_LENGHT, '\n');
+				file.get(letter);
+			}
+			while (letter == '\n' || letter == ' ')
+				file.get(letter);
+			matrix[i][j] = letter - '0';
+		}
 	}
+	file.close();
+	/*for (size_t i = 0; i < height; ++i)
+	{
+		for (size_t j = 0; j < width; ++j)
+		{
+			std::cout << matrix[i][j] << ' ';
+		}
+		std::cout << std::endl;
+	}*/
+	return true;
+}
+
+bool R_Image::get_PGMA(std::ifstream& file)
+{
+	char word[100];
+	strcpy(word, skip_comment(file));
+	pixel_max = atoi(word);
+	matrix = new(std::nothrow) size_t * [height];
+	if (matrix == nullptr)
+	{
+		del();
+		return false;
+	}
+	for (size_t i = 0; i < height; ++i)
+	{
+		matrix[i] = new(std::nothrow)size_t[width];
+		if (matrix[i] == nullptr)
+		{
+			del();
+			return false;
+		}
+	}
+	for (size_t i = 0; i < height && file.good(); ++i)
+	{
+		for (size_t j = 0; j < width && file.good(); ++j)
+		{
+			strcpy(word, skip_comment(file));
+			matrix[i][j] = atoi(word);
+		}
+	}
+	file.close();
+	return true;
+}
+
+bool R_Image::get_PPMA(std::ifstream&file)
+{
+	width *= 3;
+	return get_PGMA(file);
 }
 
 bool R_Image:: grayscale()
+{
+	return false;
+}
+
+bool R_Image::monochrome()
+{
+	return false;
+}
+
+bool R_Image::negative()
 {
 	return false;
 }

@@ -17,8 +17,14 @@ public:
 
 	R_Image& operator=(const R_Image&);
 	bool operator==(const R_Image&)const;
+	char* skip_comment(std::ifstream&);
 	bool getImage(const char*);
+	bool get_PBMA(std::ifstream&);
+	bool get_PGMA(std::ifstream&);
+	bool get_PPMA(std::ifstream&);
 	bool grayscale();
+	bool monochrome();
+	bool negative();
 	bool rotate_right();
 	bool rotate_left();
 	void save();

@@ -167,6 +167,7 @@ bool Session::apply_to_all(bool (R_Image::*function)())
 		if ((images[i].*function)() == false)
 		{
 			flag = false;
+			undo();
 			break;
 		}
 	}
@@ -183,7 +184,7 @@ void Session::save_all()
 void Session::save_as_all()
 {
 	for (size_t i = 0; i < images_count; ++i)
-		images[i].save_as("please.pgm");
+		images[i].save_as("test.pgm");
 	return;
 }
 
