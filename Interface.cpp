@@ -173,7 +173,7 @@ void Interface::split_input(char* input, size_t lenght)
 		delete[] token;
 		for (size_t i = 0; i < split_input_counter; ++i)
 			delete[] split_input[i];
-		delete split_input;
+		delete[] split_input;
 		return;
 }
 
@@ -240,7 +240,7 @@ void Interface::detect_function(char** split_input, size_t lenght)
 	}
 	if (strcmp(split_input[0], "save") == 0 && strcmp(split_input[1], "as") != 0)
 	{
-		//current->save_all();
+		current->save_all();
 		return;
 	}	
 	if (strcmp(split_input[0], "help") == 0)
@@ -353,6 +353,7 @@ void Interface::detect_function(char** split_input, size_t lenght)
 	if (strcmp(split_input[0], "undo") == 0)
 	{
 		current->undo();
+		return;
 	}
 	if(strcmp(split_input[0], "exit") != 0 ||lenght>1)
 	std::cout << "Invalid input\n";

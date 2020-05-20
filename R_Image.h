@@ -31,6 +31,7 @@ public:
 	void save_as(const char *);
 	
 	void print_file_name()const;
+	char* new_name();
 	void del();
 	void copy(const R_Image&);
 	//void print();

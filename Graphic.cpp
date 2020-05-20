@@ -16,7 +16,7 @@ int main()
 		std::cin.getline(input,100);
 		
 		interface.split_input(input, strlen(input));
-	} while (bool(strcmp(input, "exit"))==true);
+	} while (strcmp(input, "exit")!=0);
 	
 	return 0;//test comment
 }

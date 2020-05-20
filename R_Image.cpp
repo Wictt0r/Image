@@ -87,6 +87,26 @@ void R_Image::print_file_name()const
 	return;
 }
 
+char* R_Image::new_name()
+{
+	char* new_name = new(std::nothrow) char[strlen(file_name) + 5];
+	if (new_name == nullptr)
+	{
+		//???
+	}
+	for (size_t i = 0; i < strlen(file_name)-4; ++i)
+		new_name[i] = file_name[i];
+	new_name[strlen(file_name) - 4] = '\0';
+	strcat(new_name, "_new");
+	if (type == '1')
+		strcat(new_name, ".pbm");
+	if (type == '2')
+		strcat(new_name, ".pgm");
+	if (type == '3')
+		strcat(new_name, ".ppm");
+	return new_name;
+}
+
 //void R_Image::print()
 //{
 //	if(this!=nullptr)
@@ -174,7 +194,10 @@ bool R_Image::getImage(const char * name)
 	file.open(name);
 	file_name = new(std::nothrow) char[strlen(name) + 1];
 	if (file_name == nullptr)
+	{
+		file.close();
 		return false;
+	}
 	strcpy(file_name, name);
 	if (file.good() == true)
 	{
@@ -202,6 +225,7 @@ bool R_Image::get_PBMA(std::ifstream& file)
 	if (matrix == nullptr)
 	{
 		del();
+		file.close();
 		return false;
 	}
 	for (size_t i = 0; i < height; ++i)
@@ -210,6 +234,7 @@ bool R_Image::get_PBMA(std::ifstream& file)
 		if (matrix[i] == nullptr)
 		{
 			del();
+			file.close();
 			return false;
 		}
 	}
@@ -250,6 +275,7 @@ bool R_Image::get_PGMA(std::ifstream& file)
 	if (matrix == nullptr)
 	{
 		del();
+		file.close();
 		return false;
 	}
 	for (size_t i = 0; i < height; ++i)
@@ -258,6 +284,7 @@ bool R_Image::get_PGMA(std::ifstream& file)
 		if (matrix[i] == nullptr)
 		{
 			del();
+			file.close();
 			return false;
 		}
 	}
@@ -331,7 +358,7 @@ bool R_Image::rotate_right()
 			width += height;
 			height = width - height;
 			width -= height;
-			
+			return true;
 		}
 	}
 		else if (type == PPMA)
@@ -352,13 +379,13 @@ bool R_Image::rotate_right()
 						}
 					}
 
-				for (size_t i = 0; i < width; i+=3)
+				for (size_t i = 0; i < width/3; ++i)
 				{
 					for (size_t j = 0; j < height; ++j)
 					{
-						matrix_temp[height - j - 1][i] = matrix[i][j];
-						matrix_temp[height - j - 1][i+1] = matrix[i+1][j];
-						matrix_temp[height - j - 1][i+2] = matrix[i+2][j];
+						matrix_temp[i][j*3] = matrix[height - j - 1][i*3];
+						matrix_temp[i][j*3+1] = matrix[height - j - 1][i*3+1];
+						matrix_temp[i][j*3+2] = matrix[height - j - 1][i*3+2];
 					}
 				}
 				for (size_t i = 0; i < height; ++i)
@@ -367,9 +394,10 @@ bool R_Image::rotate_right()
 				}
 				delete[] matrix;
 			matrix = matrix_temp;
-			width += height;
-			height = width - height;
-			width -= height;
+			size_t helper=height;
+			height = width / 3;
+			width = helper * 3;
+			return true;
 		}
 		}
 		else return false;
@@ -409,14 +437,17 @@ bool R_Image::rotate_left()
 			height = width - height;
 			width -= height;
 			matrix = matrix_temp;
+			return true;
 		
 	}
 		else if (type == PPMA)
 		{
 				size_t** matrix_temp;
 				matrix_temp = new(std::nothrow) size_t * [width / 3];
-				if (matrix_temp != nullptr)
+				if (matrix_temp == nullptr)
 				{
+					return false;
+				}
 					for (size_t i = 0; i < width / 3; ++i)
 					{
 						matrix_temp[i] = new(std::nothrow) size_t[height * 3];
@@ -428,13 +459,13 @@ bool R_Image::rotate_left()
 							return false;
 						}
 					}
-				for (size_t i = 0; i < width; i+=3)
+				for (size_t i = 0; i < width/3; ++i)
 				{
 					for (size_t j = 0; j < height; ++j)
 					{
-						matrix_temp[j][height - (i)] = matrix[i][j];
-						matrix_temp[j][height - (i+1)] = matrix[i+1][j];
-						matrix_temp[j][height - (i+2)] = matrix[i+2][j];
+						matrix_temp[i][j*3] = matrix[j][width - i*3 - 3];
+						matrix_temp[i][j*3+1] = matrix[j][width - i*3 - 3+1];
+						matrix_temp[i][j*3+2] = matrix[j][width - i*3 - 3+2];
 					}
 				}
 				for (size_t i = 0; i < height; ++i)
@@ -443,10 +474,10 @@ bool R_Image::rotate_left()
 				}
 				delete[] matrix;
 			matrix = matrix_temp;
-			width += height;
-			height = width - height;
-			width -= height;
-		}
+			size_t helper = height;
+			height = width / 3;
+			width = helper * 3;
+			return true;
 	}
 	else return false;
 }

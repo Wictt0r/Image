@@ -163,7 +163,6 @@ bool Session::add_changes(const char* change)
 	return true;
 }
 
-
 bool Session::apply_to_all(bool (R_Image::*function)())
 {
 	previous = new(std::nothrow)R_Image[images_count];
@@ -188,14 +187,22 @@ bool Session::apply_to_all(bool (R_Image::*function)())
 void Session::save_all()
 {
 	for (size_t i = 0; i < images_count; ++i)
+	{
 		images[i].save();
+		images[i].print_file_name();
+		std::cout <<" saved\n";
+	}
 	return;
 }
 
 void Session::save_as_all()
 {
 	for (size_t i = 0; i < images_count; ++i)
-		images[i].save_as("test.pgm");
+	{
+		images[i].save_as(images[i].new_name());
+		images[i].print_file_name();
+		std::cout << " saved as " << images[i].new_name() << std::endl;
+	}
 	return;
 }
 
