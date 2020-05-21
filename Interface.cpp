@@ -196,10 +196,11 @@ void Interface::detect_function(char** split_input, size_t lenght)
 		std::cout << "Closing sessions with ID:" << current->get_ID() << "\n";
 		if(close(current_ID)==true)
 		{ 
-		if(current==nullptr)
-		{ 
-			std::cout << "No remaining sessions\n";
-		}
+			if (current == nullptr)
+			{
+				std::cout << "No active sessions\n";
+				return;
+			}
 		else
 		{
 			std::cout << "Current acitve session is:" << current->get_ID() << std::endl;
@@ -213,8 +214,11 @@ void Interface::detect_function(char** split_input, size_t lenght)
 	}
 	if (strcmp(split_input[0], "add") == 0)
 	{
-		if(current!=nullptr)
-		{ 
+		if (current == nullptr)
+		{
+			std::cout << "No active sessions\n";
+			return;
+		}
 		for(size_t i=1;i<lenght;++i)
 		{ 
 			if (current->add(split_input[i]) == true)
@@ -226,20 +230,26 @@ void Interface::detect_function(char** split_input, size_t lenght)
 				std::cout << "Coutld not add image " << split_input[i] << std::endl;
 			}
 		}
-		}
-		else
-		{
-			std::cout << "No active current session\nSwitch to an active session\n";
-		}
+		
 		return;
 	}
 	if (strcmp(split_input[0], "save") == 0 && strcmp(split_input[1], "as") == 0)
 	{
+		if (current == nullptr)
+		{
+			std::cout << "No active sessions\n";
+			return;
+		}
 		current->save_as_all();
 		return;
 	}
-	if (strcmp(split_input[0], "save") == 0 && strcmp(split_input[1], "as") != 0)
+	if (strcmp(split_input[0], "save") == 0 && lenght==1)
 	{
+		if (current == nullptr)
+		{
+			std::cout << "No active sessions\n";
+			return;
+		}
 		current->save_all();
 		return;
 	}	
@@ -275,11 +285,16 @@ void Interface::detect_function(char** split_input, size_t lenght)
 			return;
 		}
 		else
-			std::cout << "No active session\n";
+			std::cout << "No active session with that ID\n";
 		return;
 	}
 	if (strcmp(split_input[0], "grayscale") == 0)
 	{
+		if (current == nullptr)
+		{
+			std::cout << "No active sessions\n";
+			return;
+		}
 		if (current->apply_to_all(&R_Image::grayscale) == true)
 		{
 			current->add_changes("grayscale");
@@ -292,6 +307,11 @@ void Interface::detect_function(char** split_input, size_t lenght)
 	}
 	if (strcmp(split_input[0], "monochrome") == 0)
 	{
+		if (current == nullptr)
+		{
+			std::cout << "No active sessions\n";
+			return;
+		}
 		if (current->apply_to_all(&R_Image::monochrome) == true)
 		{
 			current->add_changes("monochrome");
@@ -304,6 +324,11 @@ void Interface::detect_function(char** split_input, size_t lenght)
 	}
 	if (strcmp(split_input[0], "negative") == 0)
 	{
+		if (current == nullptr)
+		{
+			std::cout << "No active sessions\n";
+			return;
+		}
 		if (current->apply_to_all(&R_Image::negative) == true)
 		{
 			current->add_changes("negative");
@@ -316,7 +341,11 @@ void Interface::detect_function(char** split_input, size_t lenght)
 	}
 	if (strcmp(split_input[0], "rotate") == 0)
 	{
-		
+		if (current == nullptr)
+		{
+			std::cout << "No active sessions\n";
+			return;
+		}
 		if (strcmp(split_input[1], "right") == 0)
 		{
 			if (current->apply_to_all(&R_Image::rotate_right)==true)
@@ -348,10 +377,19 @@ void Interface::detect_function(char** split_input, size_t lenght)
 	}
 	if (strcmp(split_input[0], "collage") == 0)
 	{
-
+		if (current == nullptr)
+		{
+			std::cout << "No active sessions\n";
+			return;
+		}
 	}
 	if (strcmp(split_input[0], "undo") == 0)
 	{
+		if (current == nullptr)
+		{
+			std::cout << "No active sessions\n";
+			return;
+		}
 		current->undo();
 		return;
 	}

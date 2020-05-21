@@ -308,17 +308,95 @@ bool R_Image::get_PPMA(std::ifstream&file)
 
 bool R_Image:: grayscale()
 {
-	return false;
+	if (type == PBMA)
+	{
+		std::cout << "Image " << file_name << " is already grayscale\n";
+	}
+	if (type == PGMA)
+	{
+		std::cout << "Image " << file_name << " is already grayscale\n";
+	}
+	if (type == PPMA)
+	{
+		for (size_t i = 0; i < height; ++i)
+			for (size_t j = 0; j < width; j+=3)
+			{
+				size_t average = (matrix[i][j] + matrix[i][j + 1] + matrix[i][j + 2]) / 3;
+				matrix[i][j] = average;
+				matrix[i][j+1] = average;
+				matrix[i][j+2] = average;
+			}
+
+	}
+	return true;
 }
 
 bool R_Image::monochrome()
 {
-	return false;
+	if (type == PBMA)
+	{
+		std::cout << "Image "<<file_name<<" is already monochrome\n";
+	}
+	if (type == PGMA)
+	{
+		grayscale();
+		for (size_t i = 0; i < height; ++i)
+			for (size_t j = 0; j < width; ++j)
+			{
+				if (matrix[i][j] <= pixel_max / 2)
+					matrix[i][j] = 0;
+				else matrix[i][j] = pixel_max;
+			}
+	}
+	if (type == PPMA)
+	{
+		grayscale();
+		for (size_t i = 0; i < height; ++i)
+			for (size_t j = 0; j < width; j += 3)
+			{
+				if (matrix[i][j] <= pixel_max / 2)
+				{ 
+				matrix[i][j] = 0;
+				matrix[i][j + 1] = 0;
+				matrix[i][j + 2] = 0;
+				}
+				else
+				{
+					matrix[i][j] = pixel_max;
+					matrix[i][j + 1] = pixel_max;
+					matrix[i][j + 2] = pixel_max;
+				}
+			}
+
+	}
+	return true;
 }
 
 bool R_Image::negative()
 {
-	return false;
+	if (type == PBMA)
+	{
+		for (size_t i = 0; i < height; ++i)
+			for (size_t j = 0; j < width; ++j)
+				if (matrix[i][j] == 0)matrix[i][j] = 1;
+				else matrix[i][j] = 0;
+	}
+	if (type == PGMA)
+	{
+		for (size_t i = 0; i < height; ++i)
+			for (size_t j = 0; j < width; ++j)
+				matrix[i][j] = pixel_max - matrix[i][j];
+	}
+	if (type == PPMA)
+	{
+		for (size_t i = 0; i < height; ++i)
+			for (size_t j = 0; j < width; ++j)
+			{
+				matrix[i][j] = pixel_max - matrix[i][j];
+			}
+		
+	}
+	return true;
 }
 
 bool R_Image::rotate_right()
