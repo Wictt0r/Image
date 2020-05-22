@@ -4,8 +4,6 @@
 #include"Session.h"
 #include"Interface.h"
 
-
-//add missing functions ,rewrite getImage creating new functions for each type of image,maybe rewrite rotate for each type of image
 int main()
 {
 	Interface interface;

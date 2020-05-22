@@ -24,5 +24,6 @@ private:
 	void del();
 	void copy(const Interface&);
 	void detect_function(char**, size_t);
+	void help();
 };
 

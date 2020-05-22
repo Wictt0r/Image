@@ -78,23 +78,50 @@ bool Session::add(const char* file_name)
 		std::cout << "Error with memory allocation3\n" << "Image not added\n";
 		return false;
 	}
-		for (size_t i = 0; i < images_count; ++i)
-		{
-			images_temp[i] = images[i];
-		}
-				
-		if(images_temp[images_count].getImage(file_name)==false)
-		{
-			std::cout << "Error with memory allocation1\n" << "Image not added\n";
-			return false;
-		}
-		else
-		{
-			delete[] images;
-			images = images_temp;
-			images_count++;
-			return true;
-		}
+	for (size_t i = 0; i < images_count; ++i)
+	{
+		images_temp[i] = images[i];
+	}
+
+	if(images_temp[images_count].getImage(file_name)==false)
+	{
+		std::cout << "Error with memory allocation1\n" << "Image not added\n";
+		return false;
+	}
+	else
+	{
+		delete[] images;
+		images = images_temp;
+		images_count++;
+		return true;
+	}
+}
+
+bool Session::add(const R_Image& image)
+{
+	R_Image* images_temp = new(std::nothrow) R_Image[images_count + 1];
+	if (images_temp == nullptr)
+	{
+		std::cout << "Error with memory allocation\n" << "Image not added\n";
+		return false;
+	}
+	for (size_t i = 0; i < images_count; ++i)
+	{
+		images_temp[i] = images[i];
+	}
+	images_temp[images_count] = image;
+	if (images_temp[images_count]==image)
+	{
+		delete[] images;
+		images = images_temp;
+		images_count++;
+		return true;
+	}
+	else
+	{
+		std::cout << "Error with memory allocation\n" << "Image not added\n";
+		return false;
+	}
 }
 
 void Session::del()
@@ -189,8 +216,7 @@ void Session::save_all()
 	for (size_t i = 0; i < images_count; ++i)
 	{
 		images[i].save();
-		images[i].print_file_name();
-		std::cout <<" saved\n";
+		std::cout << images[i].get_file_name() <<" saved\n";
 	}
 	return;
 }
@@ -200,10 +226,17 @@ void Session::save_as_all()
 	for (size_t i = 0; i < images_count; ++i)
 	{
 		images[i].save_as(images[i].new_name());
-		images[i].print_file_name();
-		std::cout << " saved as " << images[i].new_name() << std::endl;
+		std::cout << images[i].get_file_name()<< " saved as " << images[i].new_name() << std::endl;
 	}
 	return;
+}
+
+R_Image* Session::find_image(const char*image_name)
+{
+	for (size_t i = 0; i < images_count; ++i)
+		if (strcmp(images[i].get_file_name(), image_name) == 0)
+			return &images[i];
+	return nullptr;
 }
 
 void Session::print_changes() const
@@ -232,7 +265,7 @@ void Session::print_images_file_names() const
 		std::cout << "Names of the images in the session:";
 		for (size_t i = 0; i < images_count; ++i)
 		{
-			images[i].print_file_name();
+			std::cout<<images[i].get_file_name();
 			if(i!=images_count-1)
 			std::cout << ",";
 		}
@@ -240,23 +273,3 @@ void Session::print_images_file_names() const
 	}
 	return;
 }
-
-//print
-//void Session::print()
-//{
-//	for (size_t i = 0; i < images_count; ++i)
-//	{
-//		images[i].print();
-//		std::cout << std::endl;
-//	}
-//	for (size_t i = 0; i < images_count; ++i)
-//	{
-//		previous[i].print();
-//		std::cout << std::endl;
-//	}
-//	std::cout <<"ID:"<< ID;
-//	std::cout << std::endl;
-//	std::cout << "changes_count:"<<changes_count;
-//	std::cout << std::endl;
-//	return;
-//}

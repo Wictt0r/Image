@@ -32,7 +32,7 @@ void Interface::copy(const Interface& other)
 	sessions = new(std::nothrow)Session[other.sessions_counter];
 	if (sessions == nullptr)
 	{
-		std::cout << "Error with memmory allocation(copy Interface)";
+		std::cout << "Error with memmory allocation";
 		return;
 	}
 		for (size_t i = 0; i < other.sessions_counter; ++i)
@@ -170,7 +170,6 @@ void Interface::split_input(char* input, size_t lenght)
 		}
 	}
 		detect_function(split_input, counter);
-		delete[] token;
 		for (size_t i = 0; i < split_input_counter; ++i)
 			delete[] split_input[i];
 		delete[] split_input;
@@ -223,11 +222,11 @@ void Interface::detect_function(char** split_input, size_t lenght)
 		{ 
 			if (current->add(split_input[i]) == true)
 			{
-				std::cout << "Image " << split_input[i] << " added\n";
+				std::cout << "Image added\n";
 			}
 			else
 			{
-				std::cout << "Coutld not add image " << split_input[i] << std::endl;
+				std::cout << "Coutld not add image "<< std::endl;
 			}
 		}
 		
@@ -255,7 +254,7 @@ void Interface::detect_function(char** split_input, size_t lenght)
 	}	
 	if (strcmp(split_input[0], "help") == 0)
 	{
-
+		help();
 	}
 	if (strcmp(split_input[0], "switch") == 0)
 	{
@@ -382,6 +381,36 @@ void Interface::detect_function(char** split_input, size_t lenght)
 			std::cout << "No active sessions\n";
 			return;
 		}
+		R_Image* first_image= current->find_image(split_input[2]),
+			   * second_image= current->find_image(split_input[3]);
+		if (first_image == nullptr || second_image == nullptr)
+		{
+			std::cout << "Image not found\nCollage not added\n";
+			return;
+		}
+		R_Image collage;
+		if (strcmp(split_input[1], "horizontal") == 0)
+		{
+			if (collage.collage_horizontal(first_image, second_image, split_input[4]) == false)
+			{
+				std::cout << "Error\nCollage not added\n";
+				return;
+			}
+			current->add(collage);
+			//collage.del();
+			return;
+		}
+		if (strcmp(split_input[1], "vertical") == 0)
+		{
+			if (collage.collage_vertical(first_image, second_image, split_input[4]) == false)
+			{
+				std::cout << "Error\nCollage not added\n";
+				return;
+			}
+			current->add(collage);
+			//collage.del();
+			return;
+		}
 	}
 	if (strcmp(split_input[0], "undo") == 0)
 	{
@@ -395,5 +424,26 @@ void Interface::detect_function(char** split_input, size_t lenght)
 	}
 	if(strcmp(split_input[0], "exit") != 0 ||lenght>1)
 	std::cout << "Invalid input\n";
+
+}
+
+void Interface::help()
+{
+	std::cout << "The following commands are supported:\n";
+	std::cout << "load <image>: loads a new session with <image>\n";
+	std::cout << "add <image>: adds <image> to current session\n";
+	std::cout << "close: closes current session and switches to last one if possible\n";
+	std::cout << "save: saves all images in the current session with the names given\n";
+	std::cout << "save_as: saves all images as the name given + _new\n";
+	std::cout << "help: prints this\n";
+	std::cout << "exit: exits the program\n";
+	std::cout << "grayscale: grayscales all images in current session\n";
+	std::cout << "monochrome: monochromes all images in current session\n";
+	std::cout << "negative: convers all images in current session to negatives\n";
+	std::cout << "rotate <direction>: rotates all images in current session in the give directino(left/right)\n";
+	std::cout << "undo: undoes last change in current session\n";
+	std::cout << "session info: prints all images and changes in current session\n";
+	std::cout << "switch<session ID>: switches the session with ID <session ID>\n";
+	std::cout << "collage<vertical/horizontal> <image1> <image2> <collage name>: adds a collage with <image1> and <image2> to current session named <collage name>\n";
 
 }

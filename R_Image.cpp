@@ -31,60 +31,32 @@ void R_Image::del()
 }
 void R_Image::copy(const R_Image& other)
 {
-	//std::cout << other.type << " " << other.width << " " << other.height << " " << other.pixel_max << " " << other.file_name << " \n";
-		
-	matrix = new (std::nothrow)size_t* [other.height];
-	if (matrix != nullptr)
+	matrix = R_Image::create_matrix(other.height,other.width);
+	file_name = new(std::nothrow) char[strlen(other.file_name) + 1];
+	if (matrix == nullptr || file_name==nullptr)
 	{
-		for (size_t i = 0; i < other.height; ++i)
-		{
-			matrix[i] = new (std::nothrow)size_t[other.width];
-			if (matrix[i] != nullptr)
-			{
-				for (size_t j = 0; j < other.width; ++j)
-				{
-					matrix[i][j] = other.matrix[i][j];
-				}
-			}
-			else
-			{
-				std::cout << "Error with memory allocation3\n";
-				del();
-				return;
-			}
-		}
-		file_name = new(std::nothrow) char[strlen(other.file_name) + 1];
-		if (file_name == nullptr)
-		{
-			std::cout << "Error with memmory allocation\n";
-			del();
-			return;
-		}
-		strcpy(file_name, other.file_name);
-				type = other.type;
-				width = other.width;
-				height = other.height;
-				pixel_max = other.pixel_max;
-				/*for (int i = 0; i < width; ++i)
-				{
-					for (int j = 0; j < height; ++j)
-						std::cout << matrix[i][j] << " ";
-					std::cout << std::endl;
-				}*/
-
-	}
-	else
-	{
-		std::cout << "Error with memory allocation4\n";
+		std::cout << "Error with memmory allocation\n";
+		del();
 		return;
 	}
-	
+		for (size_t i = 0; i < other.height; ++i)
+		{
+			for (size_t j = 0; j < other.width; ++j)
+			{
+				matrix[i][j] = other.matrix[i][j];
+			}
+			
+		}
+		strcpy(file_name, other.file_name);
+		type = other.type;
+		width = other.width;
+		height = other.height;
+		pixel_max = other.pixel_max;
 }
 
-void R_Image::print_file_name()const
+char* R_Image::get_file_name()const
 {
-	std::cout << file_name;
-	return;
+	return file_name;
 }
 
 char* R_Image::new_name()
@@ -107,28 +79,6 @@ char* R_Image::new_name()
 	return new_name;
 }
 
-//void R_Image::print()
-//{
-//	if(this!=nullptr)
-//	for (size_t i = 0; i < width; ++i)
-//	{
-//		if (matrix[i] != nullptr)
-//			for (size_t j = 0; j < height; ++j)
-//			{
-//
-//				std::cout << matrix[i][j] << " ";
-//			}
-//		else std::cout << "matrix[i] is nullptr\n";
-//		std::cout << std::endl;
-//	}
-//	else
-//	{
-//		std::cout << "matrix is nullptr\n";
-//		return;
-//	}
-//
-//}
-
 R_Image& R_Image ::operator= (const R_Image& other)
 {
 
@@ -144,11 +94,15 @@ bool R_Image::operator==(const R_Image& other) const
 {
 	if (type == other.type && width == other.width && height == other.height && pixel_max == other.pixel_max && strcmp(file_name,other.file_name)==0)
 	{
-		for (size_t i = 0; i < width; ++i)
+		for (size_t i = 0; i < height; ++i)
 		{
-			for (size_t j = 0; j < height; ++j)
+			for (size_t j = 0; j < width; ++j)
 			{
-				if (matrix[i][j] != other.matrix[i][j]) return false;
+				if (matrix[i][j] != other.matrix[i][j])
+				{
+					std::cout << matrix[i][j] << " " << other.matrix[i][j];
+					return false;
+				}
 
 			}
 		}
@@ -157,25 +111,6 @@ bool R_Image::operator==(const R_Image& other) const
 	else return false;
 }
 
-
-//bool R_Image::is_default() const
-//{
-//	if (type == '\0' && width == 0 && height == 0 && matrix == nullptr && pixel_max == 0 && file_name == "")
-//		return true;
-//	else return false;
-//}
-
-/*
-void R_Image::set_default() 
-{
-	type = '\0';
-	width = 0; height = 0;
-	matrix = nullptr; 
-	pixel_max = 0;
-	file_name = "";
-	return;
-}
-*/
 char* R_Image::skip_comment(std::ifstream &file)
 {
 	char word[100];
@@ -219,24 +154,15 @@ bool R_Image::getImage(const char * name)
 	file.close();
 	return false;
 }
+
 bool R_Image::get_PBMA(std::ifstream& file)
 {
-	matrix = new(std::nothrow) size_t * [height];
-	if (matrix == nullptr)
+	matrix = R_Image::create_matrix(height, width);
+	if (matrix==nullptr)
 	{
-		del();
 		file.close();
+		del();
 		return false;
-	}
-	for (size_t i = 0; i < height; ++i)
-	{
-		matrix[i] = new(std::nothrow)size_t[width];
-		if (matrix[i] == nullptr)
-		{
-			del();
-			file.close();
-			return false;
-		}
 	}
 	for (size_t i = 0; i < height && file.good(); ++i)
 	{
@@ -255,14 +181,6 @@ bool R_Image::get_PBMA(std::ifstream& file)
 		}
 	}
 	file.close();
-	/*for (size_t i = 0; i < height; ++i)
-	{
-		for (size_t j = 0; j < width; ++j)
-		{
-			std::cout << matrix[i][j] << ' ';
-		}
-		std::cout << std::endl;
-	}*/
 	return true;
 }
 
@@ -271,22 +189,12 @@ bool R_Image::get_PGMA(std::ifstream& file)
 	char word[100];
 	strcpy(word, skip_comment(file));
 	pixel_max = atoi(word);
-	matrix = new(std::nothrow) size_t * [height];
+	matrix = R_Image::create_matrix(height, width);
 	if (matrix == nullptr)
 	{
-		del();
 		file.close();
+		del();
 		return false;
-	}
-	for (size_t i = 0; i < height; ++i)
-	{
-		matrix[i] = new(std::nothrow)size_t[width];
-		if (matrix[i] == nullptr)
-		{
-			del();
-			file.close();
-			return false;
-		}
 	}
 	for (size_t i = 0; i < height && file.good(); ++i)
 	{
@@ -404,21 +312,9 @@ bool R_Image::rotate_right()
 		
 	if (type == PBMA || type == PGMA)
 	{
-		size_t** matrix_temp;
-		matrix_temp = new(std::nothrow) size_t * [width];
-		if (matrix_temp != nullptr)
-		{
-			for (size_t i = 0; i < width; ++i)
-			{
-				matrix_temp[i] = new(std::nothrow) size_t[height];
-				if (matrix_temp[i] == nullptr)
-				{
-					for (size_t p = 0; p <= i; ++p)
-						delete[] matrix_temp[p];
-					delete[] matrix_temp;
-					return false;
-				}
-			}
+		size_t** matrix_temp = R_Image::create_matrix(width, height);
+		if (matrix_temp == nullptr)
+			return false;
 			
 			for (size_t i = 0; i < width; ++i)
 			{
@@ -437,26 +333,13 @@ bool R_Image::rotate_right()
 			height = width - height;
 			width -= height;
 			return true;
-		}
+		
 	}
 		else if (type == PPMA)
 		{
-				size_t** matrix_temp;
-				matrix_temp = new(std::nothrow) size_t * [width/3];
-				if (matrix_temp != nullptr)
-				{
-					for (size_t i = 0; i < width/3; ++i)
-					{
-						matrix_temp[i] = new(std::nothrow) size_t[height*3];
-						if (matrix_temp[i] == nullptr)
-						{
-							for (size_t p = 0; p <= i; ++p)
-								delete[] matrix_temp[p];
-							delete[] matrix_temp;
-							return false;
-						}
-					}
-
+				size_t** matrix_temp= R_Image::create_matrix(width/3,height*3);
+				if (matrix_temp == nullptr)
+					return false;
 				for (size_t i = 0; i < width/3; ++i)
 				{
 					for (size_t j = 0; j < height; ++j)
@@ -476,7 +359,7 @@ bool R_Image::rotate_right()
 			height = width / 3;
 			width = helper * 3;
 			return true;
-		}
+		
 		}
 		else return false;
 }
@@ -485,19 +368,10 @@ bool R_Image::rotate_left()
 {
 	if (type == PBMA || type == PGMA)
 	{
-		size_t** matrix_temp;
-		matrix_temp = new(std::nothrow) size_t * [width];
-		for (size_t i = 0; i < width; ++i)
-		{
-			matrix_temp[i] = new(std::nothrow) size_t[height];
-			if (matrix_temp[i] == nullptr)
-			{
-				for (size_t p = 0; p <= i; ++p)
-					delete[] matrix_temp[p];
-				delete[] matrix_temp;
-				return false;
-			}
-		}
+		size_t** matrix_temp=R_Image::create_matrix(width,height);
+		if (matrix_temp == nullptr)
+			return false;
+
 			for (size_t i = 0; i < width; ++i)
 			{
 				for (size_t j = 0; j < height; ++j)
@@ -514,29 +388,15 @@ bool R_Image::rotate_left()
 			width += height;
 			height = width - height;
 			width -= height;
-			matrix = matrix_temp;
 			return true;
 		
 	}
 		else if (type == PPMA)
 		{
-				size_t** matrix_temp;
-				matrix_temp = new(std::nothrow) size_t * [width / 3];
+				size_t** matrix_temp= R_Image::create_matrix(width/3,height*3);
 				if (matrix_temp == nullptr)
-				{
 					return false;
-				}
-					for (size_t i = 0; i < width / 3; ++i)
-					{
-						matrix_temp[i] = new(std::nothrow) size_t[height * 3];
-						if (matrix_temp[i] == nullptr)
-						{
-							for (size_t p = 0; p <= i; ++p)
-								delete[] matrix_temp[p];
-							delete[] matrix_temp;
-							return false;
-						}
-					}
+				
 				for (size_t i = 0; i < width/3; ++i)
 				{
 					for (size_t j = 0; j < height; ++j)
@@ -558,6 +418,26 @@ bool R_Image::rotate_left()
 			return true;
 	}
 	else return false;
+}
+
+size_t** R_Image::create_matrix(size_t _height, size_t _width)
+{
+	size_t **new_matrix = new(std::nothrow)size_t * [_height];
+	if (new_matrix == nullptr)
+		return nullptr;
+	for (size_t i = 0; i < _height; ++i)
+	{
+		new_matrix[i] = new(std::nothrow)size_t[_width];
+		if (new_matrix[i] == nullptr)
+		{
+			for (size_t p = 0; p < i; ++p)
+				delete[]new_matrix[p];
+			delete[] new_matrix;
+			return nullptr;
+		}
+		
+	}
+	return new_matrix;
 }
 
 void R_Image::save() 
@@ -599,4 +479,73 @@ void R_Image::save_as(const char* new_name)
 	}
 	file.close();
 	return;
+}
+
+bool R_Image::collage_vertical(const R_Image*first_image, const R_Image*second_image, const char*collage_name)
+{
+	del();
+	if (first_image->width != second_image->width || first_image->type!=second_image->type || first_image->pixel_max!=second_image->pixel_max)
+		return false;
+	file_name = new(std::nothrow) char[strlen(collage_name) + 1];
+	if (file_name == nullptr)
+		return false;
+	strcpy(file_name, collage_name);
+	type = first_image->type;
+	pixel_max = first_image->pixel_max;
+	height = first_image->height + second_image->height;
+	width = first_image->width;
+	matrix = R_Image::create_matrix(height,width);
+	if (matrix == nullptr)
+	{
+		del();
+		return false;
+	}
+	for (size_t i = 0; i < first_image->height; ++i)
+	{
+		for (size_t j = 0; j < width; ++j)
+		{
+			matrix[i][j] = first_image->matrix[i][j];
+		}
+	}
+	for (size_t i = first_image->height; i < height; ++i)
+	{
+		for (size_t j = 0; j < width; ++j)
+		{
+			matrix[i][j] = second_image->matrix[i-first_image->height][j];
+		}
+	}
+	return true;
+}
+
+bool R_Image::collage_horizontal(const R_Image*first_image, const R_Image*second_image, const char*collage_name)
+{
+	del();
+	if (first_image->height != second_image->height || first_image->type != second_image->type)
+		return false;
+	file_name = new(std::nothrow) char[strlen(collage_name) + 1];
+	if (file_name == nullptr)
+		return false;
+	strcpy(file_name, collage_name);
+	pixel_max = first_image->pixel_max;
+	type = first_image->type;
+	height = first_image->height;
+	width = first_image->width+second_image->width;
+	matrix = R_Image::create_matrix(height,width);
+	if (matrix == nullptr)
+	{
+		del();
+		return false;
+	}
+	for (size_t i = 0; i < height ;++i)
+	{
+		for (size_t j = 0; j < first_image->width; ++j)
+		{
+			matrix[i][j] = first_image->matrix[i][j];
+		}
+		for (size_t j = first_image->width; j < width; ++j)
+		{
+			matrix[i][j] = second_image->matrix[i][j-first_image->width];
+		}
+	}
+	return true;
 }

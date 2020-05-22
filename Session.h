@@ -12,6 +12,7 @@ public:
 	Session& operator=(const Session&);
 	
 	bool add(const char*);
+	bool add(const R_Image&);
 	void undo();
 	bool is_default()const;
 	size_t get_ID()const { return ID; }
@@ -19,16 +20,12 @@ public:
 	bool apply_to_all(bool (R_Image::*)());
 	void save_all();
 	void save_as_all();
-	/*size_t get_images_count() { return images_count; }
-	R_Image* get_images() { return images; }
-	R_Image* get_previous() { return previous; }
-	void set_previous(R_Image* other) { previous = other; }*/
-	void set_ID(size_t id) { ID = id; return; }
+	R_Image* find_image(const char*);
+	void set_ID(size_t id) { ID = id; }
 	void print_changes()const;
 	void print_images_file_names()const;
 	void del();
 	void copy(const Session&);
-	//void print();
 private:
 	R_Image* images;
 	size_t images_count;
