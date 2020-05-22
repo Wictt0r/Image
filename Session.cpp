@@ -90,6 +90,7 @@ bool Session::add(const char* file_name)
 	}
 	else
 	{
+		std::cout << "Image:" << file_name << " added\n";
 		delete[] images;
 		images = images_temp;
 		images_count++;
@@ -112,6 +113,7 @@ bool Session::add(const R_Image& image)
 	images_temp[images_count] = image;
 	if (images_temp[images_count]==image)
 	{
+		std::cout << "Image:" << image.get_file_name() << " added\n";
 		delete[] images;
 		images = images_temp;
 		images_count++;
@@ -146,6 +148,23 @@ void Session::undo()
 	}
 
 	return;
+}
+
+bool Session::create_previous()
+{
+	previous = new(std::nothrow)R_Image[images_count];
+	if (previous == nullptr)
+		return false;
+	for (size_t i = 0; i < images_count; ++i)
+	{
+		previous[i] = images[i];
+		if (!(previous[i] == images[i]))
+		{
+			delete[] previous;
+			return false;
+		}
+	}
+	return true;
 }
 
 bool Session::is_default()const
@@ -192,12 +211,8 @@ bool Session::add_changes(const char* change)
 
 bool Session::apply_to_all(bool (R_Image::*function)())
 {
-	previous = new(std::nothrow)R_Image[images_count];
-	if (previous == nullptr)
+	if (create_previous() == false)
 		return false;
-	for (size_t i = 0; i < images_count; ++i)
-		previous[i] = images[i];
-
 	bool flag = true;
 	for (size_t i = 0; i < images_count; ++i)
 	{
@@ -225,10 +240,49 @@ void Session::save_as_all()
 {
 	for (size_t i = 0; i < images_count; ++i)
 	{
-		images[i].save_as(images[i].new_name());
-		std::cout << images[i].get_file_name()<< " saved as " << images[i].new_name() << std::endl;
+		char* image_name = images[i].new_name();
+		if (image_name == nullptr)
+		{
+			std::cout << "image: " << images[i].get_file_name() << "not saved\n";
+			continue;
+		}
+		images[i].save_as(image_name);
+		std::cout << images[i].get_file_name()<< " saved as " << image_name << std::endl;
+		delete[] image_name;
 	}
 	return;
+}
+
+void Session::collage(char*direction,char*fist_image_name,char*second_image_name,char*collage_name)
+{
+	R_Image* first_image = find_image(fist_image_name),
+		* second_image = find_image(second_image_name);
+	if (first_image == nullptr || second_image == nullptr)
+	{
+		std::cout << "Image not found\nCollage not added\n";
+		return;
+	}
+	R_Image collage;
+	if (strcmp(direction, "horizontal") == 0)
+	{
+		if (collage.collage_horizontal(first_image, second_image, collage_name) == false)
+		{
+			std::cout << "Error\nCollage not added\n";
+			return;
+		}
+		add(collage);
+		return;
+	}
+	if (strcmp(direction, "vertical") == 0)
+	{
+		if (collage.collage_vertical(first_image, second_image, collage_name) == false)
+		{
+			std::cout << "Error\nCollage not added\n";
+			return;
+		}
+		add(collage);
+		return;
+	}
 }
 
 R_Image* Session::find_image(const char*image_name)

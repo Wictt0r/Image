@@ -14,12 +14,14 @@ public:
 	bool add(const char*);
 	bool add(const R_Image&);
 	void undo();
+	bool create_previous();
 	bool is_default()const;
 	size_t get_ID()const { return ID; }
 	bool add_changes(const char*);
 	bool apply_to_all(bool (R_Image::*)());
 	void save_all();
 	void save_as_all();
+	void collage(char*,char*,char*,char*);
 	R_Image* find_image(const char*);
 	void set_ID(size_t id) { ID = id; }
 	void print_changes()const;

@@ -158,11 +158,10 @@ void Interface::split_input(char* input, size_t lenght)
 			split_input[split_input_counter] = new(std::nothrow) char[strlen(token) + 1];
 			if (split_input[split_input_counter] == nullptr)
 			{
-				std::cout << "Error";
-				delete[] token;
+				std::cout << "Error\n";
 				for (size_t i = 0; i <= split_input_counter; ++i)
 					delete[] split_input[i];
-				delete split_input;
+				delete [] split_input;
 				return;
 			}
 			strcpy(split_input[split_input_counter], token);
@@ -296,7 +295,13 @@ void Interface::detect_function(char** split_input, size_t lenght)
 		}
 		if (current->apply_to_all(&R_Image::grayscale) == true)
 		{
-			current->add_changes("grayscale");
+			if (current->add_changes("grayscale") == false)
+			{
+				std::cout << "Error\nNo changes made\n";
+				current->undo();
+				return;
+			}
+				std::cout << "Images grayscaled\n";
 		}
 		else
 		{
@@ -313,7 +318,13 @@ void Interface::detect_function(char** split_input, size_t lenght)
 		}
 		if (current->apply_to_all(&R_Image::monochrome) == true)
 		{
-			current->add_changes("monochrome");
+			if (current->add_changes("monochrome") == false)
+			{
+				std::cout << "Error\nNo changes made\n";
+				current->undo();
+				return;
+			}
+			std::cout << "Images monochromed\n";
 		}
 		else
 		{
@@ -330,7 +341,13 @@ void Interface::detect_function(char** split_input, size_t lenght)
 		}
 		if (current->apply_to_all(&R_Image::negative) == true)
 		{
-			current->add_changes("negative");
+			if (current->add_changes("negative") == false)
+			{
+				std::cout << "Error\nNo changes made\n";
+				current->undo();
+				return;
+			}
+			std::cout << "Images converted to negatives\n";
 		}
 		else
 		{
@@ -349,8 +366,13 @@ void Interface::detect_function(char** split_input, size_t lenght)
 		{
 			if (current->apply_to_all(&R_Image::rotate_right)==true)
 			{
-				std::cout << "Images rotated right\n";
-				current->add_changes("rotate right");
+				if (current->add_changes("rotate right") == false)
+				{
+					std::cout << "Error\nNo changes made\n";
+					current->undo();
+					return;
+				}
+				std::cout << "Images rotated right\n";	
 			}
 			else
 			{
@@ -358,13 +380,17 @@ void Interface::detect_function(char** split_input, size_t lenght)
 			}
 			return;
 		}
-
 		if (strcmp(split_input[1], "left") == 0)
 		{
 			if (current->apply_to_all(&R_Image::rotate_left) == true)
 			{
+				if (current->add_changes("rotate left") == false)
+				{
+					std::cout << "Error\nNo changes made\n";
+					current->undo();
+					return;
+				}
 				std::cout << "Images rotated left\n";
-				current->add_changes("rotate left");
 			}
 			else
 			{
@@ -381,36 +407,7 @@ void Interface::detect_function(char** split_input, size_t lenght)
 			std::cout << "No active sessions\n";
 			return;
 		}
-		R_Image* first_image= current->find_image(split_input[2]),
-			   * second_image= current->find_image(split_input[3]);
-		if (first_image == nullptr || second_image == nullptr)
-		{
-			std::cout << "Image not found\nCollage not added\n";
-			return;
-		}
-		R_Image collage;
-		if (strcmp(split_input[1], "horizontal") == 0)
-		{
-			if (collage.collage_horizontal(first_image, second_image, split_input[4]) == false)
-			{
-				std::cout << "Error\nCollage not added\n";
-				return;
-			}
-			current->add(collage);
-			//collage.del();
-			return;
-		}
-		if (strcmp(split_input[1], "vertical") == 0)
-		{
-			if (collage.collage_vertical(first_image, second_image, split_input[4]) == false)
-			{
-				std::cout << "Error\nCollage not added\n";
-				return;
-			}
-			current->add(collage);
-			//collage.del();
-			return;
-		}
+		current->collage(split_input[1],split_input[2], split_input[3], split_input[4]);
 	}
 	if (strcmp(split_input[0], "undo") == 0)
 	{
@@ -424,7 +421,6 @@ void Interface::detect_function(char** split_input, size_t lenght)
 	}
 	if(strcmp(split_input[0], "exit") != 0 ||lenght>1)
 	std::cout << "Invalid input\n";
-
 }
 
 void Interface::help()

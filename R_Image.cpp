@@ -10,10 +10,12 @@
 #define MAX_LINE_LENGHT 70
 
 R_Image::R_Image() :type('\0'), width(0), height(0), matrix(nullptr), pixel_max(0),file_name(nullptr) {}
+
 R_Image::R_Image(const R_Image& other)
 {
 	copy(other);
 }
+
 R_Image::~R_Image()
 {
 	del();
@@ -29,6 +31,7 @@ void R_Image::del()
 	delete[] file_name;
 	return;
 }
+
 void R_Image::copy(const R_Image& other)
 {
 	matrix = R_Image::create_matrix(other.height,other.width);
@@ -64,7 +67,7 @@ char* R_Image::new_name()
 	char* new_name = new(std::nothrow) char[strlen(file_name) + 5];
 	if (new_name == nullptr)
 	{
-		//???
+		return nullptr;
 	}
 	for (size_t i = 0; i < strlen(file_name)-4; ++i)
 		new_name[i] = file_name[i];
@@ -113,7 +116,7 @@ bool R_Image::operator==(const R_Image& other) const
 
 char* R_Image::skip_comment(std::ifstream &file)
 {
-	char word[100];
+	static char word[100];
 	file >> word;
 	while (word[0] == '#' && file.good())
 	{
@@ -247,7 +250,6 @@ bool R_Image::monochrome()
 	}
 	if (type == PGMA)
 	{
-		grayscale();
 		for (size_t i = 0; i < height; ++i)
 			for (size_t j = 0; j < width; ++j)
 			{
