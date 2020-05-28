@@ -486,7 +486,12 @@ void R_Image::save_as(const char* new_name)
 bool R_Image::collage_vertical(const R_Image*first_image, const R_Image*second_image, const char*collage_name)
 {
 	del();
-	if (first_image->width != second_image->width || first_image->type!=second_image->type || first_image->pixel_max!=second_image->pixel_max)
+	if (first_image->width != second_image->width)
+	{
+		std::cout << "Images have different width\n";
+		return false;
+	}
+	if (first_image->type!=second_image->type || first_image->pixel_max!=second_image->pixel_max)
 		return false;
 	file_name = new(std::nothrow) char[strlen(collage_name) + 1];
 	if (file_name == nullptr)
@@ -522,7 +527,12 @@ bool R_Image::collage_vertical(const R_Image*first_image, const R_Image*second_i
 bool R_Image::collage_horizontal(const R_Image*first_image, const R_Image*second_image, const char*collage_name)
 {
 	del();
-	if (first_image->height != second_image->height || first_image->type != second_image->type)
+	if (first_image->height != second_image->height)
+	{
+		std::cout << "Images have different height\n";
+		return false;
+	}
+	if (first_image->type != second_image->type)
 		return false;
 	file_name = new(std::nothrow) char[strlen(collage_name) + 1];
 	if (file_name == nullptr)

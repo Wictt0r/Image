@@ -426,7 +426,7 @@ void Interface::help()
 	std::cout << "add <image>: adds <image> to current session\n";
 	std::cout << "close: closes current session and switches to last one if possible\n";
 	std::cout << "save: saves all images in the current session with the names given\n";
-	std::cout << "save_as: saves all images as the name given + _new\n";
+	std::cout << "save as: saves all images as the name given + _new\n";
 	std::cout << "help: prints this\n";
 	std::cout << "exit: exits the program\n";
 	std::cout << "grayscale: grayscales all images in current session\n";
