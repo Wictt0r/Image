@@ -431,7 +431,7 @@ void Interface::help()
 	std::cout << "exit: exits the program\n";
 	std::cout << "grayscale: grayscales all images in current session\n";
 	std::cout << "monochrome: monochromes all images in current session\n";
-	std::cout << "negative: convers all images in current session to negatives\n";
+	std::cout << "negative: converts all images in current session to negatives\n";
 	std::cout << "rotate <direction>: rotates all images in current session in the give directino(left/right)\n";
 	std::cout << "undo: undoes last change in current session\n";
 	std::cout << "session info: prints all images and changes in current session\n";
