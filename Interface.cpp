@@ -219,11 +219,7 @@ void Interface::detect_function(char** split_input, size_t lenght)
 		}
 		for(size_t i=1;i<lenght;++i)
 		{ 
-			if (current->add(split_input[i]) == true)
-			{
-				std::cout << "Image added\n";
-			}
-			else
+			if (current->add(split_input[i]) == false)
 			{
 				std::cout << "Coutld not add image "<< std::endl;
 			}
