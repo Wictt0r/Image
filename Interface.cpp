@@ -152,6 +152,10 @@ void Interface::split_input(char* input, size_t lenght)
 	if (split_input[split_input_counter] == nullptr)
 	{
 		std::cout << "Error\n";
+		for (size_t i = 0; i < split_input_counter; ++i)
+			delete[] split_input[i];
+			delete[] split_input;
+			return;
 	}
 	strcpy(split_input[split_input_counter], token);
 	++split_input_counter;
