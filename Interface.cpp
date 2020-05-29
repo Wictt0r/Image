@@ -89,7 +89,7 @@ bool Interface::close(const size_t close_ID)
 {
 	if (sessions_counter == 1)
 	{
-		sessions[current_ID].del();
+		delete[] sessions;
 		sessions_counter = 0;	
 		sessions = nullptr;
 		current = nullptr;
