@@ -217,7 +217,7 @@ bool R_Image::get_PPMA(std::ifstream&file)
 	return get_PGMA(file);
 }
 
-bool R_Image:: grayscale()
+bool R_Image::grayscale()
 {
 	if (type == PBMA)
 	{

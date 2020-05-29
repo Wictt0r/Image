@@ -28,7 +28,6 @@ public:
 	bool collage_horizontal(const R_Image*,const R_Image*,const char*);
 	void save();
 	void save_as(const char *);
-	
 	char* get_file_name()const;
 	char* new_name();
 	void del();

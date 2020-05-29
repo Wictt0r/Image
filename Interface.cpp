@@ -138,11 +138,16 @@ void Interface::split_input(char* input, size_t lenght)
 	char** split_input= new (std::nothrow) char*[counter];
 	if (split_input == nullptr)
 	{
-		std::cout << "Error with memory allocation" << std::endl;
+		std::cout << "Error\n";
 		return;
 	}
 	size_t split_input_counter = 0;
 	char* token = strtok(input, " ");
+	if (token == nullptr)
+	{
+		std::cout << "Invaild input\n";
+		return;	
+	}
 	split_input[split_input_counter]= new(std::nothrow) char[strlen(token) + 1];
 	if (split_input[split_input_counter] == nullptr)
 	{
@@ -177,7 +182,7 @@ void Interface::split_input(char* input, size_t lenght)
 
 void Interface::detect_function(char** split_input, size_t lenght)
 {
-	if (strcmp(split_input[0], "load")==0)
+	if (lenght > 1 && strcmp(split_input[0], "load")==0)
 	{
 		if (load(split_input, lenght,ID_counter) == true)
 		{
@@ -189,8 +194,13 @@ void Interface::detect_function(char** split_input, size_t lenght)
 		}
 		return;
 	}
-	if (strcmp(split_input[0], "close") == 0)
+	if (lenght == 1 && strcmp(split_input[0], "close") == 0)
 	{
+		if (current == nullptr)
+		{
+			std::cout << "No active sessions\n";
+			return;
+		}
 		std::cout << "Closing sessions with ID:" << current->get_ID() << "\n";
 		if(close(current_ID)==true)
 		{ 
@@ -210,7 +220,7 @@ void Interface::detect_function(char** split_input, size_t lenght)
 		}
 		return;
 	}
-	if (strcmp(split_input[0], "add") == 0)
+	if (lenght > 1 && strcmp(split_input[0], "add") == 0)
 	{
 		if (current == nullptr)
 		{
@@ -227,7 +237,7 @@ void Interface::detect_function(char** split_input, size_t lenght)
 		
 		return;
 	}
-	if (strcmp(split_input[0], "save") == 0 && strcmp(split_input[1], "as") == 0)
+	if (lenght == 2 && strcmp(split_input[0], "save") == 0 && strcmp(split_input[1], "as") == 0)
 	{
 		if (current == nullptr)
 		{
@@ -237,7 +247,7 @@ void Interface::detect_function(char** split_input, size_t lenght)
 		current->save_as_all();
 		return;
 	}
-	if (strcmp(split_input[0], "save") == 0 && lenght==1)
+	if (lenght == 1 && strcmp(split_input[0], "save") == 0)
 	{
 		if (current == nullptr)
 		{
@@ -247,11 +257,12 @@ void Interface::detect_function(char** split_input, size_t lenght)
 		current->save_all();
 		return;
 	}	
-	if (strcmp(split_input[0], "help") == 0)
+	if (lenght == 1 && strcmp(split_input[0], "help") == 0)
 	{
 		help();
+		return;
 	}
-	if (strcmp(split_input[0], "switch") == 0)
+	if (lenght == 2 && strcmp(split_input[0], "switch") == 0)
 	{
 		size_t id = std::stoi(split_input[1]);
 		for (size_t i = 0; i < sessions_counter; ++i)
@@ -269,7 +280,7 @@ void Interface::detect_function(char** split_input, size_t lenght)
 		std::cout << "The session does not exist or is closed\n";
 		return;
 	}
-	if (strcmp(split_input[0], "session") == 0 && strcmp(split_input[1], "info") == 0)
+	if (lenght == 2 && strcmp(split_input[0], "session") == 0 && strcmp(split_input[1], "info") == 0)
 	{
 		if (current != nullptr)
 		{
@@ -282,7 +293,7 @@ void Interface::detect_function(char** split_input, size_t lenght)
 			std::cout << "No active session with that ID\n";
 		return;
 	}
-	if (strcmp(split_input[0], "grayscale") == 0)
+	if (lenght == 1 && strcmp(split_input[0], "grayscale") == 0)
 	{
 		if (current == nullptr)
 		{
@@ -305,7 +316,7 @@ void Interface::detect_function(char** split_input, size_t lenght)
 		}
 		return;
 	}
-	if (strcmp(split_input[0], "monochrome") == 0)
+	if (lenght == 1 && strcmp(split_input[0], "monochrome") == 0)
 	{
 		if (current == nullptr)
 		{
@@ -328,7 +339,7 @@ void Interface::detect_function(char** split_input, size_t lenght)
 		}
 		return;
 	}
-	if (strcmp(split_input[0], "negative") == 0)
+	if (lenght == 1 && strcmp(split_input[0], "negative") == 0)
 	{
 		if (current == nullptr)
 		{
@@ -351,7 +362,7 @@ void Interface::detect_function(char** split_input, size_t lenght)
 		}
 		return;
 	}
-	if (strcmp(split_input[0], "rotate") == 0)
+	if (lenght == 2 && strcmp(split_input[0], "rotate") == 0)
 	{
 		if (current == nullptr)
 		{
@@ -396,7 +407,7 @@ void Interface::detect_function(char** split_input, size_t lenght)
 		}
 		
 	}
-	if (strcmp(split_input[0], "collage") == 0)
+	if (lenght == 5 && strcmp(split_input[0], "collage") == 0)
 	{
 		if (current == nullptr)
 		{
@@ -404,8 +415,9 @@ void Interface::detect_function(char** split_input, size_t lenght)
 			return;
 		}
 		current->collage(split_input[1],split_input[2], split_input[3], split_input[4]);
+		return;
 	}
-	if (strcmp(split_input[0], "undo") == 0)
+	if (lenght == 1 && strcmp(split_input[0], "undo") == 0)
 	{
 		if (current == nullptr)
 		{
